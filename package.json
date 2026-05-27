@@ -1,0 +1,16 @@
+{
+  "name": "price-tracker",
+  "version": "3.0.0",
+  "description": "Perbandingan harga kompetitor Tokopedia — 15 kolom, refresh 12 jam",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "install-chrome": "npx puppeteer browsers install chrome"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^4.22.2",
+    "express-session": "^1.19.0",
+    "puppeteer": "^21.0.0"
+  }
+}

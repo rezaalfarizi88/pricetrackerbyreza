@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Login — PriceTrack E-Commerce by Reza</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  min-height:100vh;
+  background:#9cbcff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  padding:24px;
+  position:relative;
+  overflow:hidden;
+}
+
+body::before{
+  content:'';
+  position:absolute;
+  width:500px;height:500px;
+  background:radial-gradient(circle,rgba(16,185,129,.07) 0%,transparent 70%);
+  top:-100px;left:-100px;
+  border-radius:50%;
+  pointer-events:none;
+}
+
+body::after{
+  content:'';
+  position:absolute;
+  width:400px;height:400px;
+  background:radial-gradient(circle,rgba(16,185,129,.05) 0%,transparent 70%);
+  bottom:-80px;right:-60px;
+  border-radius:50%;
+  pointer-events:none;
+}
+
+.card{
+  width:100%;
+  max-width:420px;
+  background:#111827;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:24px;
+  padding:48px 40px 40px;
+  position:relative;
+  z-index:1;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:36px;
+}
+
+.logo-icon{
+  width:44px;height:44px;
+  background:linear-gradient(135deg,#10b981,#059669);
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+
+.logo-icon span{
+  color:#fff;
+  font-weight:800;
+  font-size:16px;
+  letter-spacing:-0.5px;
+}
+
+.brand-text h1{
+  color:#f9fafb;
+  font-size:20px;
+  font-weight:700;
+  line-height:1.2;
+  letter-spacing:-0.3px;
+}
+
+.brand-text p{
+  color:#6b7280;
+  font-size:12px;
+  margin-top:2px;
+}
+
+.divider{
+  height:1px;
+  background:rgba(255,255,255,.05);
+  margin-bottom:32px;
+}
+
+.heading{
+  margin-bottom:28px;
+}
+
+.heading h2{
+  color:#f9fafb;
+  font-size:22px;
+  font-weight:700;
+  letter-spacing:-0.4px;
+}
+
+.heading p{
+  color:#6b7280;
+  font-size:13px;
+  margin-top:6px;
+}
+
+.field{
+  margin-bottom:16px;
+}
+
+.label{
+  display:block;
+  color:#9ca3af;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+
+.input-wrap{
+  position:relative;
+}
+
+.input-icon{
+  position:absolute;
+  left:14px;top:50%;transform:translateY(-50%);
+  color:#4b5563;
+  font-size:16px;
+  pointer-events:none;
+}
+
+.input{
+  width:100%;
+  padding:13px 14px 13px 42px;
+  background:#1c2535;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  color:#f9fafb;
+  font-size:14px;
+  font-family:inherit;
+  outline:none;
+  transition:border-color .2s,background .2s;
+}
+
+.input::placeholder{color:#4b5563}
+
+.input:focus{
+  border-color:#10b981;
+  background:#1e2840;
+}
+
+.eye-btn{
+  position:absolute;
+  right:14px;top:50%;transform:translateY(-50%);
+  color:#4b5563;
+  cursor:pointer;
+  background:none;border:none;padding:0;
+  font-size:16px;
+  transition:color .2s;
+}
+
+.eye-btn:hover{color:#9ca3af}
+
+.options-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;margin-top:4px;
+}
+
+.check-label{
+  display:flex;align-items:center;gap:8px;
+  cursor:pointer;color:#9ca3af;font-size:13px;
+}
+
+.check-label input{
+  accent-color:#10b981;width:15px;height:15px;cursor:pointer;
+}
+
+.forgot{
+  color:#10b981;font-size:13px;text-decoration:none;
+}
+
+.forgot:hover{text-decoration:underline}
+
+.btn-login{
+  width:100%;
+  padding:14px;
+  background:#10b981;
+  border:none;border-radius:12px;
+  color:#052e16;
+  font-size:15px;
+  font-weight:700;
+  font-family:inherit;
+  cursor:pointer;
+  transition:opacity .15s,transform .1s;
+  letter-spacing:.2px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+
+.btn-login:hover{opacity:.92}
+.btn-login:active{transform:scale(.98)}
+
+.error-box{
+  background:rgba(239,68,68,.08);
+  border:1px solid rgba(239,68,68,.2);
+  border-radius:10px;
+  padding:11px 14px;
+  color:#f87171;
+  font-size:13px;
+  margin-bottom:20px;
+  display:none;
+  align-items:center;
+  gap:8px;
+}
+
+.section-divider{
+  display:flex;align-items:center;gap:12px;
+  margin:24px 0 20px;
+}
+
+.section-divider::before,.section-divider::after{
+  content:'';flex:1;height:1px;background:rgba(255,255,255,.05);
+}
+
+.section-divider span{color:#4b5563;font-size:12px}
+
+.demo-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+}
+
+.demo-card{
+  background:#0f1724;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:10px;
+  padding:12px 14px;
+}
+
+.demo-role{
+  color:#10b981;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+
+.demo-cred{
+  color:#6b7280;
+  font-size:12px;
+  line-height:1.7;
+}
+
+.demo-cred b{color:#9ca3af;font-weight:600}
+
+.brand-icon{
+  width:38px;
+  height:38px;
+
+  border-radius:16px; /* membulat */
+  overflow:hidden;
+
+  background:#fff;
+  
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  box-shadow:
+    0 4px 12px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.2);
+
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.brand-icon img{
+  width:98%;
+  height:98%;
+  object-fit:cover;
+  display:block;
+}
+
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="brand">
+    <div class="brand-icon"><img src="logo.png" alt="Logo"></div>
+    <div class="brand-text">
+      <h1>PriceTrack <span style="color:#10b981">E-Commerce</span></h1>
+      <p>Competitor price monitoring dashboard</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="heading">
+    <h2>Selamat datang</h2>
+    <p>Masuk untuk mengakses dasbor harga kompetitor</p>
+  </div>
+
+  <div id="error-box" class="error-box">
+    <i class="ti ti-alert-circle"></i>
+    <span id="error-msg">Username atau password salah.</span>
+  </div>
+
+  <div class="field">
+    <label class="label" for="username">Username</label>
+    <div class="input-wrap">
+      <i class="ti ti-user input-icon"></i>
+      <input type="text" id="username" class="input" placeholder="Masukkan username">
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label" for="password">Password</label>
+    <div class="input-wrap">
+      <i class="ti ti-lock input-icon"></i>
+      <input type="password" id="password" class="input" placeholder="Masukkan password" style="padding-right:44px">
+      <button class="eye-btn" onclick="togglePw()" aria-label="Tampilkan password">
+        <i class="ti ti-eye" id="eye-icon"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="options-row">
+    <label class="check-label">
+      <input type="checkbox" id="remember"> Ingat saya
+    </label>
+    <a href="#" class="forgot">Lupa password?</a>
+  </div>
+
+  <button class="btn-login" onclick="doLogin()">
+    Masuk
+    <i class="ti ti-arrow-right"></i>
+  </button>
+
+</div>
+
+<script>
+function togglePw(){
+  const pw = document.getElementById('password');
+  const ic = document.getElementById('eye-icon');
+  if(pw.type === 'password'){
+    pw.type = 'text';
+    ic.className = 'ti ti-eye-off';
+  } else {
+    pw.type = 'password';
+    ic.className = 'ti ti-eye';
+  }
+}
+
+async function doLogin(){
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const errBox  = document.getElementById('error-box');
+  const errMsg  = document.getElementById('error-msg');
+  errBox.style.display = 'none';
+
+  if(!username || !password){
+    errMsg.textContent = 'Username dan password wajib diisi.';
+    errBox.style.display = 'flex';
+    return;
+  }
+
+  try{
+    const res  = await fetch('/api/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username, password})
+    });
+    const data = await res.json();
+
+    if(!res.ok){
+      errMsg.textContent = data.error || 'Login gagal.';
+      errBox.style.display = 'flex';
+      return;
+    }
+
+    window.location.href = data.role === 'admin' ? '/admin.html' : '/visitor.html';
+
+  } catch(e){
+    errMsg.textContent = 'Tidak dapat terhubung ke server.';
+    errBox.style.display = 'flex';
+  }
+}
+
+document.getElementById('username').addEventListener('keydown', e => {
+  if(e.key === 'Enter') document.getElementById('password').focus();
+});
+document.getElementById('password').addEventListener('keydown', e => {
+  if(e.key === 'Enter') doLogin();
+});
+</script>
+
+</body>
+</html>

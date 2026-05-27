@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Price Tracker Multi Lintas Niaga — Perbandingan Harga Kompetitor</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:       #0d0f14;
+  --surface:  #131720;
+  --surface2: #181d28;
+  --border:   #1e2535;
+  --border2:  #252d3d;
+  --accent:   #3ecf8e;
+  --blue:     #3b82f6;
+  --red:      #f43f5e;
+  --yellow:   #f59e0b;
+  --text:     #dce4f0;
+  --table-head: #111827;
+  --table-body: #0b1220;
+  --table-sticky: #131720;
+  --table-sticky-2: #0d1422;
+  --table-hover: #172033;
+  --muted:    #4a5568;
+  --muted2:   #6b7896;
+  --mono:     'IBM Plex Mono', monospace;
+  --sans:     'Plus Jakarta Sans', sans-serif;
+  --radius:   10px;
+  --input-bg:#ffffff;
+  --input-text:#111827;
+  --input-border:#cbd5e1;
+}
+
+/* Sticky columns anti tembus */
+thead th:nth-child(1),
+tbody td:nth-child(1),
+thead th:nth-child(2),
+tbody td:nth-child(2),
+thead th:nth-child(3),
+tbody td:nth-child(3),
+thead th:nth-child(4),
+tbody td:nth-child(4){
+  background: var(--surface);
+  background-clip: padding-box;
+}
+
+/* Shadow pemisah saat scroll */
+thead th:nth-child(4),
+tbody td:nth-child(4){
+  box-shadow: 6px 0 12px rgba(0,0,0,.18);
+}
+
+table{
+  position:relative;
+  z-index:1;
+}
+
+thead th,
+tbody td{
+  position:relative;
+}
+
+.edit-input{
+  width:100%;
+  padding:10px 12px;
+
+  background:var(--input-bg);
+  color:var(--input-text);
+
+  border:1px solid var(--input-border);
+  border-radius:10px;
+
+  outline:none;
+  transition:0.2s ease;
+}
+
+/* Saat diklik */
+.edit-input:focus{
+  border-color:#3b82f6;
+  box-shadow:0 0 0 3px rgba(59,130,246,0.15);
+}
+
+/* Placeholder */
+.edit-input::placeholder{
+  color:#94a3b8;
+}
+
+body.dark-mode{
+  --input-bg:#1e293b;
+  --input-text:#f8fafc;
+  --input-border:#334155;
+}
+
+body.light-mode {
+  --bg:       #f5f7fb;
+  --surface:  #ffffff;
+  --surface2: #f1f5f9;
+
+  --border:   #dbe2ea;
+  --border2:  #cbd5e1;
+
+  --accent:   #10b981;
+  --blue:     #2563eb;
+  --red:      #ef4444;
+  --yellow:   #f59e0b;
+
+  --text:     #0f172a;
+  --muted:    #64748b;
+  --muted2:   #475569;
+
+  --table-head: #ffffff;
+  --table-body: #f8fafc;
+  --table-sticky: #ffffff;
+  --table-sticky-2: #f1f5f9;
+  --table-hover: #e2e8f0;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  min-height: 100vh;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  gap: 16px;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon{
+  width:38px;
+  height:38px;
+
+  border-radius:16px; /* membulat */
+  overflow:hidden;
+
+  background:#fff;
+  
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  box-shadow:
+    0 4px 12px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.2);
+
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.brand-icon img{
+  width:98%;
+  height:98%;
+  object-fit:cover;
+  display:block;
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.brand-name span { color: var(--accent); }
+
+.topbar-center {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  justify-content: center;
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--muted2);
+}
+
+.stat-pill .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 5px var(--accent);
+  animation: blink 2s infinite;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.note-edit{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.note-view,
+.note-edit{
+  min-width:120px;
+}
+
+.note-edit input{
+  width:100%;
+}
+
+.note-text{
+  font-size:12px;
+  line-height:1.5;
+  color:var(--text);
+  word-break:break-word;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all .15s;
+  white-space: nowrap;
+}
+
+.btn-green  { background: var(--accent); color: #0a1510; }
+.btn-green:hover  { background: #5af0a8; }
+
+.btn-ghost  { background: transparent; border: 1px solid var(--border2); color: var(--muted2); }
+.btn-ghost:hover  { border-color: var(--accent); color: var(--accent); }
+
+.btn-sm { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+
+/* ── SUBBAR (search + info) ── */
+.subbar {
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  width: 240px;
+}
+
+.search-box svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+}
+
+.search-box input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 7px 10px 7px 32px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12px;
+  outline: none;
+  transition: border-color .2s;
+}
+
+.search-box input:focus { border-color: var(--accent); }
+
+.info-text {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--muted);
+}
+
+.info-text strong { color: var(--muted2); }
+
+.countdown-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--muted);
+}
+
+.countdown-num { color: var(--blue); font-weight: 500; }
+
+.bar-track {
+  width: 80px; height: 3px;
+  background: var(--border2);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue), var(--accent));
+  border-radius: 99px;
+  transition: width 1s linear;
+}
+
+.table-container {
+  height: calc(100vh - 120px);
+  overflow: hidden;
+}
+
+/* ── MAIN SCROLL WRAPPER ── */
+.table-wrapper {
+  height: 100%;
+  overflow: auto;
+  position: relative;
+  padding: 20px 28px;
+}
+
+/* Scrollbar horizontal kecil abu-abu */
+.table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #5f6675;
+  border-radius: 999px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #7b8496;
+}
+
+/* Firefox */
+.table-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: #5f6675 transparent;
+}
+
+/* ── TABLE ── */
+/* ── TABLE ── */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: max-content;
+  width: max-content;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--surface);
+  padding: 14px 16px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border2);
+}
+
+thead th:last-child {
+  border-right: none;
+}
+
+/* Kolom 1: Produk */
+thead th:nth-child(1),
+tbody td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 15;
+  min-width: 190px;
+  width: 190px;
+  background: var(--surface);
+  border-right: 1px solid var(--border2) !important;
+}
+
+/* Kolom 2: Ukuran */
+thead th:nth-child(2),
+tbody td:nth-child(2) {
+  position: sticky;
+  left: 190px;
+  z-index: 15;
+  min-width: 90px;
+  width: 90px;
+  background: var(--surface);
+  border-right: 1px solid var(--border2) !important;
+}
+
+/* Kolom 3: Tebal */
+thead th:nth-child(3),
+tbody td:nth-child(3) {
+  position: sticky;
+  left: 280px;
+  z-index: 15;
+  min-width: 70px;
+  width: 70px;
+  background: var(--surface);
+  border-right: 1px solid var(--border2) !important;
+}
+
+/* Kolom 4: Harga Tokped */
+thead th:nth-child(4),
+tbody td:nth-child(4) {
+  position: sticky;
+  left: 350px;
+  z-index: 15;
+  min-width: 110px;
+  width: 110px;
+  background: var(--surface);
+  border-right: 1px solid var(--border2) !important;
+}
+
+/* Kolom 5: Harga Termurah */
+thead th:nth-child(5),
+tbody td:nth-child(5) {
+  min-width: 140px;
+  width: 140px;
+  border-right: 1px solid var(--border2);
+}
+
+/* Harga Termurah */
+tbody td:nth-child(5) {
+  background: var(--table-sticky-2);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+/* Header sticky z-index lebih tinggi dari body sticky */
+thead th:nth-child(1) { z-index: 41; }
+thead th:nth-child(2) { z-index: 41; }
+thead th:nth-child(3) { z-index: 41; }
+thead th:nth-child(4) { z-index: 41; }
+
+tbody td {
+  min-width: 140px;
+  padding: 16px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+
+/* Background solid untuk kolom sticky di body */
+tbody td:nth-child(1) {
+  background: var(--surface);
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: -.01em;
+  text-align: left;
+}
+
+tbody td:nth-child(2) {
+  background: var(--table-sticky-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted2);
+}
+
+tbody td:nth-child(3) {
+  background: var(--table-sticky-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted2);
+}
+
+tbody td:nth-child(4) {
+  background: var(--table-sticky-2);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Hover state — semua kolom sticky ikut berubah */
+tbody tr:hover td:not(:nth-child(-n+4)){
+  background: var(--surface);
+}
+tbody tr:hover td:nth-child(1) { background: var(--table-hover); }
+tbody tr:hover td:nth-child(2) { background: #131d30; }
+tbody tr:hover td:nth-child(3) { background: #131d30; }
+tbody tr:hover td:nth-child(4) { background: #131d30; }
+
+/* =========================
+   FIX STICKY COLUMN TEMBUS
+========================= */
+
+thead th:nth-child(-n+4),
+tbody td:nth-child(-n+4){
+  position: sticky;
+  isolation: isolate;
+}
+
+/* layer penutup */
+thead th:nth-child(-n+4)::before,
+tbody td:nth-child(-n+4)::before{
+  content:"";
+  position:absolute;
+  inset:0;
+
+  background: inherit;
+
+  z-index:-1;
+}
+
+/* shadow pembatas */
+thead th:nth-child(4),
+tbody td:nth-child(4){
+  box-shadow: 8px 0 14px rgba(0,0,0,.18);
+}
+
+/* pastikan body sticky benar-benar solid */
+tbody td:nth-child(1){
+  background: var(--surface) !important;
+}
+
+tbody td:nth-child(2),
+tbody td:nth-child(3),
+tbody td:nth-child(4){
+  background: var(--table-sticky-2) !important;
+}
+
+/* Competitor cell */
+.comp-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+.comp-price {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.comp-diff {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+.diff-win  { background: #3ecf8e18; color: var(--accent); }
+.diff-lose { background: #f43f5e18; color: var(--red); }
+.diff-even { background: #ffffff0a; color: var(--muted2); }
+
+.comp-store-name {
+  font-size: 10px;
+  color: var(--muted);
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.comp-empty { color: var(--border2); font-size: 18px; }
+
+.comp-pending { color: var(--muted); font-size: 10px; font-family: var(--mono); }
+.comp-error   { color: var(--red);   font-size: 10px; font-family: var(--mono); }
+
+.comp-link {
+  color: var(--blue);
+  font-size: 9px;
+  font-family: var(--mono);
+  text-decoration: none;
+  opacity: .7;
+}
+.comp-link:hover { opacity: 1; }
+
+/* Action column */
+.action-btn {
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: var(--red);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.action-btn:hover { background: #f43f5e15; border-color: var(--red); }
+
+/* Row number badge */
+.row-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  border-radius: 5px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.product-name-cell { display: flex; align-items: center; }
+
+/* ── MODAL ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: #000000cc;
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 26px;
+  transform: translateY(16px);
+  transition: transform .2s;
+}
+.overlay.open .modal { transform: translateY(0); }
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  margin-bottom: 20px;
+}
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-full  { grid-column: 1/-1; }
+
+label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--muted2);
+  margin-bottom: 5px;
+}
+
+input[type=text], input[type=number] {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  padding: 9px 11px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12.5px;
+  outline: none;
+  transition: border-color .2s;
+}
+input:focus { border-color: var(--accent); }
+
+.comp-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 12px;
+  margin-top: 8px;
+}
+.comp-block-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--muted2);
+  margin-bottom: 10px;
+}
+
+.comp-entry {
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.comp-entry .remove-comp {
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 9px 10px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all .15s;
+  font-size: 12px;
+}
+.comp-entry .remove-comp:hover { color: var(--red); border-color: var(--red); }
+
+.add-comp-btn {
+  background: transparent;
+  border: 1px dashed var(--border2);
+  border-radius: 7px;
+  padding: 8px;
+  width: 100%;
+  color: var(--muted2);
+  font-family: var(--sans);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all .15s;
+  margin-top: 4px;
+}
+.add-comp-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 12px;
+  z-index: 200;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all .2s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── EMPTY ── */
+.empty-row td {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+  margin-top: 6px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 4px 7px;
+  font-size: 10px;
+  cursor: pointer;
+  transition: .15s;
+}
+
+.edit-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.save-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.cancel-btn:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.price-view,
+.price-edit{
+  min-width:110px;
+}
+
+.price-edit{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.price-text{
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:700;
+  color:var(--accent);
+}
+
+.comp-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.comp-edit input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: var(--input-text);
+  font-size: 11px;
+}
+
+.comp-edit input:focus{
+  border-color:#3b82f6;
+  box-shadow:0 0 0 3px rgba(59,130,246,0.15);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.footer{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+
+  width:100%;
+  padding:6px 13px;
+
+  border-top:1px solid var(--border);
+
+  background:var(--surface);
+
+  font-size:11px;
+  font-family:var(--mono);
+
+  color:var(--muted);
+}
+
+.footer-dot{
+  opacity:.5;
+}
+
+/* ── LOADING SPINNER ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: inline-block;
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon"><img src="logo.png" alt="Logo" onclick="window.open('https://multilintasniaga.com/', '_blank')"></div>
+    <span class="brand-name">Price<span>Track E-Commerce</span></span>
+  </div>
+
+  <div class="topbar-center">
+    <div class="stat-pill"><div class="dot"></div><span id="lastUpd">Memuat...</span></div>
+    <div class="stat-pill" id="prodCount">— produk</div>
+  </div>
+
+  <div class="topbar-actions">
+    <button class="btn btn-ghost" onclick="downloadExcel()">📊 Excel</button>
+    <button class="btn btn-ghost" onclick="downloadPDF()">🖨 PDF</button>
+    <button class="btn btn-ghost" onclick="toggleTheme()" id="themeBtn">
+    🌙 Dark
+    </button>
+    <button class="btn btn-ghost" onclick="triggerRefresh()">🔄 Refresh</button>
+    <button class="btn btn-green" onclick="openModal()" style="display:none;">＋ Tambah Produk</button>
+    <button class="btn btn-ghost" onclick="window.location.href='/login.html'">
+    🚪 Logout
+    </button>
+  </div>
+</div>
+
+<!-- SUB BAR -->
+<div class="subbar">
+  <div class="search-box">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" id="searchInput" placeholder="Cari nama produk..." oninput="renderTable()"/>
+  </div>
+  <div class="info-text">Menampilkan <strong id="shownCount">—</strong> produk · <strong>15</strong> slot kompetitor</div>
+  <div class="countdown-wrap">
+    <span>Refresh berikutnya:</span>
+    <span class="countdown-num" id="countdownEl">--:--:--</span>
+    <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="table-container">
+  <div class="table-wrapper">
+    <table id="mainTable">
+      <thead id="tableHead"></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-title">＋ Tambah Produk Baru</div>
+
+    <div class="form-grid">
+      <div class="form-full">
+        <label>Nama Produk *</label>
+        <input type="text" id="f_name" placeholder="Contoh: Bordes Aluminium"/>
+      </div>
+      <div>
+        <label>Ukuran *</label>
+        <input type="text" id="f_size" placeholder="Contoh: 1000x2000mm"/>
+      </div>
+      <div>
+        <label>Ketebalan *</label>
+        <input type="text" id="f_thick" placeholder="Contoh: 1mm, 3mm"/>
+      </div>
+      <div class="form-full">
+        <label>Harga saya di Tokopedia (Rp) *</label>
+        <input type="number" id="f_price" placeholder="Contoh: 1617808"/>
+      </div>
+      <div class="form-full">
+        <label>Keterangan</label>
+        <input type="text" id="f_note" placeholder="Contoh: Ready stock, Pre-order 2 minggu, dll."/>
+      </div>
+    </div>
+
+    <div class="comp-block">
+      <div class="comp-block-title">Kompetitor (maks. 15)</div>
+      <div id="compEntries"></div>
+      <button class="add-comp-btn" onclick="addCompEntry()">＋ Tambah Kompetitor</button>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Batal</button>
+      <button class="btn btn-green" onclick="submitProduct()">💾 Simpan & Scrape</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const MAX_COMP = 15;
+const REFRESH_MS = 12 * 60 * 60 * 1000; // 12 jam
+
+let products = [];
+let nextScrapeTime = null;
+
+(async () => {
+
+  const res = await fetch('/api/me');
+
+  if (!res.ok) {
+    location.href = '/login.html';
+  }
+
+})();
+
+// ── FETCH ──
+async function fetchData() {
+  try {
+    const r = await fetch('/api/products');
+    const d = await r.json();
+    products = d.products || [];
+    nextScrapeTime = d.nextScrapeTime ? new Date(d.nextScrapeTime).getTime() : null;
+    const lu = d.lastScrapeTime
+      ? new Date(d.lastScrapeTime).toLocaleString('id-ID', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })
+      : 'Belum pernah';
+    document.getElementById('lastUpd').textContent = 'Update: ' + lu;
+    renderTable();
+  } catch(e) { console.error(e); }
+}
+
+// ── BUILD HEADER ──
+function buildHeader() {
+  const th = document.getElementById('tableHead');
+  let html = '<tr>';
+  html += '<th>Produk</th>';
+  html += '<th>Ukuran</th>';
+  html += '<th>Tebal</th>';
+  html += '<th>Harga Tokped</th>';
+  html += '<th>Harga Termurah</th>';
+  html += '<th>Keterangan</th>';
+  for (let i = 1; i <= MAX_COMP; i++) {
+    html += `<th class="comp-th">Kompetitor ${i}</th>`;
+  }
+  html += '<th class="last-col">Aksi</th>';
+  html += '</tr>';
+  th.innerHTML = html;
+}
+
+// ── RENDER TABLE ──
+function renderTable() {
+  buildHeader();
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = products.filter(p => p.name.toLowerCase().includes(q));
+  document.getElementById('shownCount').textContent = filtered.length;
+  document.getElementById('prodCount').textContent = products.length + ' produk';
+
+  const tbody = document.getElementById('tableBody');
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (5 + MAX_COMP + 1) + '">Tidak ada produk ditemukan.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((p, idx) => {
+    let row = `<tr>`;
+
+    // Produk
+    row += `<td><div class="product-name-cell"><span class="row-num">${idx + 1}</span>${p.name}</div></td>`;
+    row += `<td>${p.size}</td>`;
+    row += `<td>${p.thickness}</td>`;
+    row += `
+    <td>
+      <div id="price_${p.id}">
+
+        <!-- VIEW MODE -->
+        <div class="price-view">
+
+          <span class="price-text">
+            Rp ${fmt(p.myPrice)}
+          </span>
+
+          <br>
+
+          <button class="edit-btn"
+            onclick="editPrice(${p.id})" style="display:none;">
+            ✏️
+          </button>
+
+        </div>
+
+        <!-- EDIT MODE -->
+        <div class="price-edit" style="display:none;">
+
+          <input
+            type="number"
+            class="edit-input"
+            id="price_input_${p.id}"
+            value="${p.myPrice}"
+            placeholder="Harga Tokped">
+
+          <div class="edit-actions">
+
+            <button class="save-btn"
+              onclick="savePrice(${p.id})">
+              💾
+            </button>
+
+            <button class="cancel-btn"
+              onclick="cancelPrice(${p.id})">
+              ✕
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+    </td>
+    `;
+
+    // hitung harga termurah dari kompetitor
+    const validPrices = p.competitors
+      .filter(c => c && c.price)
+      .map(c => c.price);
+
+    const cheapestPrice = validPrices.length
+      ? Math.min(...validPrices)
+      : null;
+
+    // tampilkan harga termurah
+    row += `
+    <td style="color:#f59e0b;font-weight:700;">
+      ${cheapestPrice ? `Rp ${fmt(cheapestPrice)}` : '-'}
+    </td>
+    `;
+
+    row += `
+    <td>
+      <div id="note_${p.id}">
+        
+        <!-- MODE VIEW -->
+        <div class="note-view">
+          <span class="note-text">
+            ${p.note || '-'}
+          </span>
+
+          <br>
+
+          <button class="edit-btn"
+            onclick="editNote(${p.id})" style="display:none;">
+            ✏️
+          </button>
+        </div>
+
+        <!-- MODE EDIT -->
+        <div class="note-edit" style="display:none;">
+          <input
+            type="text"
+            class="edit-input"
+            id="note_input_${p.id}"
+            value="${p.note || ''}"
+            placeholder="Masukkan keterangan">
+
+          <div class="edit-actions">
+            <button class="save-btn"
+              onclick="saveNote(${p.id})">
+              💾
+            </button>
+
+            <button class="cancel-btn"
+              onclick="cancelNote(${p.id})">
+              ✕
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </td>
+    `;
+
+    // 15 kompetitor
+    for (let i = 0; i < MAX_COMP; i++) {
+      const c = p.competitors[i];
+      if (!c) {
+        row += `<td><span class="comp-empty">·</span></td>`;
+      } else {
+        row += `<td>${renderComp(c, p.myPrice, p.id, i)}</td>`;
+      }
+    }
+
+    // Aksi
+    row += `<td><button class="action-btn" onclick="deleteProduct(${p.id})" style="display:none;">✕</button></td>`;
+    row += `</tr>`;
+    return row;
+  }).join('');
+}
+
+function renderComp(c, myPrice, productId, compIndex) {
+  let html = `<div class="comp-cell" id="comp_${productId}_${compIndex}">`;
+
+  // MODE VIEW
+  html += `
+    <div class="comp-view">
+      <div class="comp-store-name" title="${c.store}">
+        ${c.store}
+      </div>
+  `;
+
+  if (c.status === 'pending') {
+    html += `<span class="comp-pending"><span class="spinner"></span></span>`;
+  } else if (!c.price) {
+    html += `<span class="comp-error">Gagal</span>`;
+  } else {
+    html += `<div class="comp-price">Rp ${fmt(c.price)}</div>`;
+
+    if (c.diff === 0) {
+      html += `<span class="comp-diff diff-even">= Sama</span>`;
+    } else if (c.diff > 0) {
+      html += `<span class="comp-diff diff-win">▲ +${c.diffPercent}%</span>`;
+    } else {
+      html += `<span class="comp-diff diff-lose">▼ ${c.diffPercent}%</span>`;
+    }
+  }
+
+  html += `
+      <a class="comp-link" href="${c.url}" target="_blank">↗ buka</a>
+
+      <button class="edit-btn"
+        onclick="editCompetitor(${productId}, ${compIndex})" style="display:none;">
+        ✏️
+      </button>
+    </div>
+  `;
+
+  // MODE EDIT
+  html += `
+    <div class="comp-edit" style="display:none;">
+      <input type="text" class="edit-input"
+        id="edit_store_${productId}_${compIndex}"
+        value="${c.store}"
+        placeholder="Nama toko">
+
+      <input type="text" class="edit-input"
+        id="edit_url_${productId}_${compIndex}"
+        value="${c.url}"
+        placeholder="URL">
+
+      <div class="edit-actions">
+        <button class="save-btn"
+          onclick="saveCompetitor(${productId}, ${compIndex})">
+          💾
+        </button>
+
+        <button class="cancel-btn"
+          onclick="cancelEdit(${productId}, ${compIndex})">
+          ✕
+        </button>
+      </div>
+    </div>
+  `;
+
+  html += `</div>`;
+
+  return html;
+}
+
+function editCompetitor(productId, compIndex) {
+  const el = document.getElementById(`comp_${productId}_${compIndex}`);
+
+  el.querySelector('.comp-view').style.display = 'none';
+  el.querySelector('.comp-edit').style.display = 'flex';
+}
+
+function cancelEdit(productId, compIndex) {
+  const el = document.getElementById(`comp_${productId}_${compIndex}`);
+
+  el.querySelector('.comp-view').style.display = 'block';
+  el.querySelector('.comp-edit').style.display = 'none';
+}
+
+function editCompetitor(productId, compIndex) {
+  const el = document.getElementById(`comp_${productId}_${compIndex}`);
+
+  el.querySelector('.comp-view').style.display = 'none';
+  el.querySelector('.comp-edit').style.display = 'flex';
+}
+
+function cancelEdit(productId, compIndex) {
+  const el = document.getElementById(`comp_${productId}_${compIndex}`);
+
+  el.querySelector('.comp-view').style.display = 'block';
+  el.querySelector('.comp-edit').style.display = 'none';
+}
+
+async function saveCompetitor(productId, compIndex) {
+
+  const store = document
+    .getElementById(`edit_store_${productId}_${compIndex}`)
+    .value.trim();
+
+  const url = document
+    .getElementById(`edit_url_${productId}_${compIndex}`)
+    .value.trim();
+
+  if (!store || !url) {
+    showToast('⚠️ Nama toko & URL wajib diisi');
+    return;
+  }
+
+  const res = await fetch(`/api/products/${productId}/competitors/${compIndex}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ store, url })
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    showToast('✅ Kompetitor diperbarui');
+    fetchData();
+  } else {
+    showToast(data.error || 'Gagal update');
+  }
+}
+
+// =======================
+// EDIT HARGA TOKPED
+// =======================
+
+function editPrice(productId) {
+
+  const el = document.getElementById(`price_${productId}`);
+
+  el.querySelector('.price-view').style.display = 'none';
+  el.querySelector('.price-edit').style.display = 'flex';
+}
+
+function cancelPrice(productId) {
+
+  const el = document.getElementById(`price_${productId}`);
+
+  el.querySelector('.price-view').style.display = 'block';
+  el.querySelector('.price-edit').style.display = 'none';
+}
+
+async function savePrice(productId) {
+
+  const input = document.getElementById(`price_input_${productId}`);
+
+  const myPrice = parseInt(input.value);
+
+  if (isNaN(myPrice) || myPrice <= 0) {
+
+    showToast('⚠️ Harga tidak valid');
+
+    return;
+  }
+
+  try {
+
+    const res = await fetch(`/api/products/${productId}/price`, {
+
+      method: 'PUT',
+
+      headers: {
+        'Content-Type': 'application/json'
+      },
+
+      body: JSON.stringify({
+        myPrice
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+
+      showToast(data.error || 'Gagal update');
+
+      return;
+    }
+
+    showToast('✅ Harga berhasil disimpan');
+
+    await fetchData();
+
+  } catch (err) {
+
+    console.error(err);
+
+    showToast('❌ Server error');
+  }
+}
+
+// =======================
+// NOTE
+// =======================
+
+function editNote(productId) {
+
+  const el = document.getElementById(`note_${productId}`);
+
+  el.querySelector('.note-view').style.display = 'none';
+  el.querySelector('.note-edit').style.display = 'flex';
+}
+
+function cancelNote(productId) {
+
+  const el = document.getElementById(`note_${productId}`);
+
+  el.querySelector('.note-view').style.display = 'block';
+  el.querySelector('.note-edit').style.display = 'none';
+}
+
+async function saveNote(productId) {
+
+  const note = document
+    .getElementById(`note_input_${productId}`)
+    .value.trim();
+
+  const res = await fetch(`/api/products/${productId}/note`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ note })
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    showToast('✅ Keterangan diperbarui');
+    fetchData();
+  } else {
+    showToast(data.error || 'Gagal update');
+  }
+}
+
+function fmt(n) { return Number(n).toLocaleString('id-ID'); }
+
+// ── COUNTDOWN ──
+function updateCountdown() {
+  if (!nextScrapeTime) return;
+  const remaining = Math.max(0, nextScrapeTime - Date.now());
+  const pct = ((REFRESH_MS - remaining) / REFRESH_MS * 100).toFixed(2);
+  const hh = String(Math.floor(remaining / 3600000)).padStart(2, '0');
+  const mm = String(Math.floor((remaining % 3600000) / 60000)).padStart(2, '0');
+  const ss = String(Math.floor((remaining % 60000) / 1000)).padStart(2, '0');
+  document.getElementById('countdownEl').textContent = `${hh}:${mm}:${ss}`;
+  document.getElementById('barFill').style.width = pct + '%';
+}
+
+// ── ACTIONS ──
+async function triggerRefresh() {
+  showToast('🔄 Memulai scraping...');
+  await fetch('/api/refresh', { method: 'POST' });
+  nextScrapeTime = Date.now() + REFRESH_MS;
+  setTimeout(fetchData, 3000);
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Hapus produk ini?')) return;
+  await fetch(`/api/products/${id}`, { method: 'DELETE' });
+  showToast('🗑 Produk dihapus');
+  fetchData();
+}
+
+// ── MODAL ──
+let compCount = 0;
+function openModal() {
+  compCount = 0;
+  document.getElementById('compEntries').innerHTML = '';
+  ['f_name','f_size','f_thick','f_price'].forEach(id => document.getElementById(id).value = '');
+  addCompEntry();
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+
+function addCompEntry() {
+  if (compCount >= MAX_COMP) { showToast(`⚠️ Maksimal ${MAX_COMP} kompetitor`); return; }
+  compCount++;
+  const n = compCount;
+  const div = document.createElement('div');
+  div.className = 'comp-entry';
+  div.id = `ce_${n}`;
+  div.innerHTML = `
+    <div>
+      <label>Nama Toko ${n}</label>
+      <input type="text" id="cs_${n}" placeholder="Toko Rival ${n}"/>
+    </div>
+    <div>
+      <label>URL Tokopedia ${n}</label>
+      <input type="text" id="cu_${n}" placeholder="https://www.tokopedia.com/..."/>
+    </div>
+    <button class="remove-comp" onclick="removeComp(${n})">✕</button>
+  `;
+  document.getElementById('compEntries').appendChild(div);
+}
+
+function removeComp(n) {
+  const el = document.getElementById(`ce_${n}`);
+  if (el) { el.remove(); compCount--; }
+}
+
+async function submitProduct() {
+  const name  = document.getElementById('f_name').value.trim();
+  const size  = document.getElementById('f_size').value.trim() || '-';
+  const thick = document.getElementById('f_thick').value.trim() || '-';
+  const price = parseInt(document.getElementById('f_price').value);
+  const note = document.getElementById('f_note').value.trim();
+
+  if (!name || !price) { showToast('⚠️ Nama dan harga wajib diisi'); return; }
+
+  const competitors = [];
+  document.querySelectorAll('[id^="ce_"]').forEach(el => {
+    const n = el.id.replace('ce_', '');
+    const store = document.getElementById(`cs_${n}`)?.value.trim();
+    const url   = document.getElementById(`cu_${n}`)?.value.trim();
+    if (store && url) competitors.push({ store, url });
+  });
+
+  await fetch('/api/products', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, size, thickness: thick, myPrice: price, note, competitors })
+  });
+
+  closeModal();
+  showToast('✅ Produk ditambahkan! Scraping dimulai...');
+  setTimeout(fetchData, 2000);
+}
+
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── INIT ──
+buildHeader();
+fetchData();
+setInterval(fetchData, 5 * 60 * 1000);  // poll tiap 5 menit
+setInterval(updateCountdown, 1000);
+
+function toggleTheme() {
+  document.body.classList.toggle('light-mode');
+
+  const isLight = document.body.classList.contains('light-mode');
+
+  const btn = document.getElementById('themeBtn');
+
+  if (isLight) {
+    btn.innerHTML = '☀️ Light';
+
+    localStorage.setItem('theme', 'light');
+  } else {
+    btn.innerHTML = '🌙 Dark';
+
+    localStorage.setItem('theme', 'dark');
+  }
+}
+
+// Load theme saat refresh
+(function () {
+  const savedTheme = localStorage.getItem('theme');
+
+  if (savedTheme === 'light') {
+    document.body.classList.add('light-mode');
+
+    const btn = document.getElementById('themeBtn');
+
+    if (btn) {
+      btn.innerHTML = '☀️ Light';
+    }
+  }
+})();
+
+// ===============================
+// EXPORT EXCEL
+// ===============================
+
+function buildExportData() {
+
+  return products.map((p, idx) => {
+
+    // ambil semua harga kompetitor valid
+    const validPrices = p.competitors
+      .filter(c => c && c.price)
+      .map(c => Number(String(c.price).replace(/[^\d]/g, '')))
+      .filter(v => !isNaN(v));
+
+    // cari harga termurah
+    const cheapest =
+      validPrices.length > 0
+        ? Math.min(...validPrices)
+        : '-';
+
+    const row = {
+      No: idx + 1,
+      Produk: p.name,
+      Ukuran: p.size,
+      Tebal: p.thickness,
+      "Harga Tokped": p.myPrice,
+
+      // kolom harga termurah
+      "Harga Termurah": cheapest,
+
+      Keterangan: p.note || '-'
+    };
+
+    // kompetitor gabung nama + harga
+    for (let i = 0; i < MAX_COMP; i++) {
+
+      const c = p.competitors[i];
+
+      row[`Kompetitor ${i + 1}`] =
+        c && (c.store || c.price)
+          ? `${c.store || '-'} (${c.price || '-'})`
+          : '-';
+    }
+
+    return row;
+  });
+}
+
+function downloadExcel() {
+
+  const data = buildExportData();
+
+  const ws = XLSX.utils.json_to_sheet(data);
+
+  const wb = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(wb, ws, "Price Tracker");
+
+  XLSX.writeFile(
+    wb,
+    `PriceTracker_${new Date().toISOString().slice(0,10)}.xlsx`
+  );
+
+  showToast('📊 Excel berhasil didownload');
+}
+
+// ===============================
+// EXPORT PDF LANDSCAPE
+// ===============================
+
+async function downloadPDF() {
+
+  const { jsPDF } = window.jspdf;
+
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a3'
+  });
+
+ const headers = [[
+  'No',
+  'Produk',
+  'Ukuran',
+  'Tebal',
+  'Harga Tokped',
+  'Harga Termurah',
+  'Keterangan',
+
+  ...Array.from(
+    { length: MAX_COMP },
+    (_, i) => `Kompetitor ${i+1}`
+  )
+]];
+
+const body = products.map((p, idx) => {
+
+  // hitung harga termurah
+  const validPrices = p.competitors
+    .filter(c => c && c.price)
+    .map(c => c.price);
+
+  const cheapestPrice = validPrices.length
+    ? Math.min(...validPrices)
+    : null;
+
+  const row = [
+    idx + 1,
+    p.name,
+    p.size,
+    p.thickness,
+    `Rp ${fmt(p.myPrice)}`,
+
+    cheapestPrice
+      ? `Rp ${fmt(cheapestPrice)}`
+      : '-',
+
+    p.note || '-'
+  ];
+
+  for (let i = 0; i < MAX_COMP; i++) {
+
+    const c = p.competitors[i];
+
+    row.push(
+      c
+        ? `${c.store}
+    Rp ${c.price ? fmt(c.price) : '-'}`
+        : '-'
+    );
+  }
+
+  return row;
+});
+
+  doc.setFontSize(16);
+
+  doc.text(
+    'PriceTrack E-Commerce Dashboard',
+    14,
+    14
+  );
+
+  doc.setFontSize(9);
+
+  doc.text(
+    `Export: ${new Date().toLocaleString('id-ID')}`,
+    14,
+    20
+  );
+
+  doc.autoTable({
+    head: headers,
+    body: body,
+
+    startY: 25,
+
+    styles: {
+      fontSize: 5.5,
+      cellPadding: 2,
+      overflow: 'linebreak',
+
+      halign: 'center',
+      valign: 'middle'
+    },
+
+    headStyles: {
+      fillColor: [16,185,129]
+    },
+
+    alternateRowStyles: {
+      fillColor: [245,245,245]
+    },
+
+    tableWidth: 'wrap',
+
+    margin: {
+      top: 25,
+      left: 14,
+      right: 14,
+      bottom: 14
+    }
+  });
+
+  doc.save(
+    `PriceTracker_${new Date().toISOString().slice(0,10)}.pdf`
+  );
+
+  showToast('🖨 PDF berhasil didownload');
+}
+
+</script>
+<footer class="footer">
+  <span>© 2026 Multi Lintas Niaga</span>
+  <span class="footer-dot">•</span>
+  <span>PriceTrack E-Commerce Dashboard by Saeful Reza Alfarizi</span>
+</footer>
+
+<!-- XLSX -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<!-- jsPDF -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<!-- AutoTable -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>
