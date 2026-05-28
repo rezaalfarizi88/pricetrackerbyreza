@@ -62,7 +62,7 @@ let trackedProducts = [
 const users = [
   {
     username: "Reza",
-    password: bcrypt.hashSync("NatusV1ncere23", 10),
+    password: bcrypt.hashSync("VeniV1d1Vici23", 10),
     role: "admin"
   },
   {
