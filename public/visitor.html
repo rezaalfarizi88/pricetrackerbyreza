@@ -900,6 +900,184 @@ input:focus { border-color: var(--accent); }
   animation: spin .7s linear infinite;
   display: inline-block;
 }
+
+  /* ── MOBILE RESPONSIVE ── */
+@media (max-width: 768px) {
+
+  .topbar {
+    padding: 8px 12px;
+    height: auto;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .topbar-center {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .topbar-actions {
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+
+  .brand-name {
+    font-size: 12px;
+  }
+
+  .stat-pill {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .subbar {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .info-text {
+    font-size: 10px;
+  }
+
+  .countdown-wrap {
+    margin-left: 0;
+    width: 100%;
+    font-size: 10px;
+  }
+
+  .bar-track {
+    width: 60px;
+  }
+
+  .table-container {
+    height: calc(100vh - 180px);
+  }
+
+  .table-wrapper {
+    padding: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  thead th:nth-child(1),
+  tbody td:nth-child(1) {
+    min-width: 120px !important;
+    width: 120px !important;
+    font-size: 11px !important;
+  }
+
+  thead th:nth-child(2),
+  tbody td:nth-child(2) {
+    left: 120px !important;
+    min-width: 65px !important;
+    width: 65px !important;
+  }
+
+  thead th:nth-child(3),
+  tbody td:nth-child(3) {
+    left: 185px !important;
+    min-width: 50px !important;
+    width: 50px !important;
+  }
+
+  thead th:nth-child(4),
+  tbody td:nth-child(4) {
+    left: 235px !important;
+    min-width: 95px !important;
+    width: 95px !important;
+  }
+
+  tbody td {
+    padding: 10px 8px;
+    font-size: 11px;
+    min-width: 110px;
+  }
+
+  thead th {
+    padding: 10px 8px;
+    font-size: 11px;
+  }
+
+  .comp-store-name {
+    font-size: 9px;
+    max-width: 80px;
+  }
+
+  .comp-price { font-size: 10px; }
+  .comp-diff  { font-size: 9px; padding: 1px 5px; }
+  .comp-link  { font-size: 8px; }
+
+  .row-num {
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+    margin-right: 4px;
+  }
+
+  .price-text { font-size: 11px; }
+
+  .modal {
+    padding: 14px;
+    max-height: 92vh;
+    border-radius: 10px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-full {
+    grid-column: 1;
+  }
+
+  .comp-entry {
+    grid-template-columns: 1fr 1fr auto;
+    gap: 6px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .footer {
+    font-size: 9px;
+    padding: 4px 8px;
+    flex-wrap: wrap;
+    text-align: center;
+    gap: 4px;
+  }
+
+  .toast {
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Sembunyikan beberapa tombol di HP kecil */
+  .topbar-actions .btn-ghost:nth-child(1),
+  .topbar-actions .btn-ghost:nth-child(2) {
+    display: none;
+  }
+}
+  
 </style>
 </head>
 <body>
