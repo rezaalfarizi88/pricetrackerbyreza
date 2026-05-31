@@ -211,28 +211,61 @@ async function scrapePrice(url) {
       .waitForSelector('[data-testid="lblPDPDetailProductPrice"], .price, [class*="price"]', { timeout: 10000 })
       .catch(() => {});
 
-    const price = await page.evaluate(() => {
-      const selectors = [
+    const result = await page.evaluate(() => {
+      // ── HARGA ──
+      const priceSelectors = [
         '[data-testid="lblPDPDetailProductPrice"]',
         '[class*="ProductPrice"]',
         '[class*="product-price"]',
         ".price",
         '[class*="price"]',
       ];
-      for (const sel of selectors) {
+      let price = null;
+      for (const sel of priceSelectors) {
         const el = document.querySelector(sel);
         if (el) {
           const text = el.innerText || el.textContent;
           const match = text.replace(/\./g, "").match(/\d+/);
-          if (match) return parseInt(match[0]);
+          if (match) { price = parseInt(match[0]); break; }
         }
       }
-      return null;
+
+      // ── TERJUAL ──
+      const soldSelectors = [
+        '[data-testid="lblPDPDetailProductSoldCounter"]',
+        '[class*="sold"]',
+        '[class*="Sold"]',
+      ];
+      let sold = null;
+      for (const sel of soldSelectors) {
+        const el = document.querySelector(sel);
+        if (el) {
+          const text = (el.innerText || el.textContent).trim();
+          if (text) { sold = text; break; }
+        }
+      }
+
+      // Fallback: cari teks yang mengandung "terjual" di semua elemen
+      if (!sold) {
+        const all = document.querySelectorAll("*");
+        for (const el of all) {
+          if (el.children.length === 0) {
+            const t = (el.innerText || el.textContent || "").trim().toLowerCase();
+            if (t.includes("terjual") && t.length < 40) {
+              sold = (el.innerText || el.textContent).trim();
+              break;
+            }
+          }
+        }
+      }
+
+      return { price, sold };
     });
-    return price;
+
+    return result; // { price, sold }
   } catch (err) {
     console.error("Scrape error:", url, err.message);
-    return null;
+    return { price: null, sold: null };
   } finally {
     if (page) await page.close();
   }
@@ -251,14 +284,15 @@ async function scrapeAll() {
     for (const product of snapshot) {
       for (const comp of product.competitors) {
         const key   = `${product.id}_${comp.store}`;
-        const price = await scrapePrice(comp.url);
+        const { price, sold } = await scrapePrice(comp.url);
         scrapeCache[key] = {
           price,
+          sold,
           scrapedAt: new Date().toISOString(),
           status: price ? "ok" : "error",
         };
         console.log(
-          `  [${product.name}] ${comp.store} → ${price ? "Rp " + price.toLocaleString("id-ID") : "Gagal"}`
+          `  [${product.name}] ${comp.store} → ${price ? "Rp " + price.toLocaleString("id-ID") : "Gagal"} | ${sold || "-"}`
         );
       }
     }
@@ -277,9 +311,10 @@ async function scrapeProduct(product) {
     await initBrowser();
     for (const comp of product.competitors) {
       const key   = `${product.id}_${comp.store}`;
-      const price = await scrapePrice(comp.url);
+      const { price, sold } = await scrapePrice(comp.url);
       scrapeCache[key] = {
         price,
+        sold,
         scrapedAt: new Date().toISOString(),
         status: price ? "ok" : "error",
       };
@@ -319,12 +354,14 @@ app.get("/api/products", async (req, res) => {
         const compPrice = cached.price || null;
         const diff      = compPrice !== null ? compPrice - product.myPrice : null;
         const diffPct   = compPrice !== null
+        const compSold  = cached.sold  || null;
           ? (((compPrice - product.myPrice) / product.myPrice) * 100).toFixed(1)
           : null;
         return {
           store: comp.store,
           url: comp.url,
           price: compPrice,
+          sold: compSold,
           status: cached.status || "pending",
           scrapedAt: cached.scrapedAt || null,
           diff,
