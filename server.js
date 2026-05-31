@@ -352,11 +352,12 @@ app.get("/api/products", async (req, res) => {
         const key       = `${product.id}_${comp.store}`;
         const cached    = scrapeCache[key] || {};
         const compPrice = cached.price || null;
-        const diff      = compPrice !== null ? compPrice - product.myPrice : null;
-        const diffPct   = compPrice !== null
-        const compSold  = cached.sold  || null;
-          ? (((compPrice - product.myPrice) / product.myPrice) * 100).toFixed(1)
-          : null;
+        const diff = compPrice !== null ? compPrice - product.myPrice : null;
+        var diffPct = null;
+        if (compPrice !== null) {
+          diffPct = (((compPrice - product.myPrice) / product.myPrice) * 100).toFixed(1);
+        }
+        const compSold = cached.sold || null;
         return {
           store: comp.store,
           url: comp.url,
