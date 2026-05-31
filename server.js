@@ -33,6 +33,16 @@ async function initDB() {
   `);
 
   await pool.query(`
+  CREATE TABLE IF NOT EXISTS scrape_cache (
+    key TEXT PRIMARY KEY,
+    price INTEGER,
+    sold TEXT,
+    scraped_at TEXT,
+    status TEXT
+  )
+`);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS "session" (
       "sid" varchar NOT NULL COLLATE "default",
       "sess" json NOT NULL,
@@ -322,6 +332,7 @@ async function scrapeAll() {
           scrapedAt: new Date().toISOString(),
           status: price ? "ok" : "error",
         };
+        await saveCacheDB(key, scrapeCache[key]);
         console.log(
           `  [${product.name}] ${comp.store} → ${price ? "Rp " + price.toLocaleString("id-ID") : "Gagal"} | ${sold || "-"}`
         );
@@ -337,6 +348,31 @@ async function scrapeAll() {
   }
 }
 
+Ganti fungsi scrapeAll dan scrapeProduct agar menyimpan ke DB:
+javascript// Simpan cache ke DB
+async function saveCacheDB(key, data) {
+  await pool.query(`
+    INSERT INTO scrape_cache (key, price, sold, scraped_at, status)
+    VALUES ($1,$2,$3,$4,$5)
+    ON CONFLICT (key) DO UPDATE SET
+      price=$2, sold=$3, scraped_at=$4, status=$5
+  `, [key, data.price, data.sold, data.scrapedAt, data.status]);
+}
+
+// Load cache dari DB saat startup
+async function loadCacheDB() {
+  const { rows } = await pool.query('SELECT * FROM scrape_cache');
+  rows.forEach(r => {
+    scrapeCache[r.key] = {
+      price: r.price,
+      sold: r.sold,
+      scrapedAt: r.scraped_at,
+      status: r.status
+    };
+  });
+  console.log(`📦 Cache dimuat: ${rows.length} entri`);
+}
+
 async function scrapeProduct(product) {
   try {
     await initBrowser();
@@ -349,6 +385,7 @@ async function scrapeProduct(product) {
         scrapedAt: new Date().toISOString(),
         status: price ? "ok" : "error",
       };
+      await saveCacheDB(key, scrapeCache[key]);
     }
   } catch (err) {
     console.error("❌ scrapeProduct error:", err.message);
@@ -544,6 +581,7 @@ app.listen(PORT, async () => {
   console.log(`\n🚀 Price Tracker → http://localhost:${PORT}`);
   await initDB();
   trackedProducts = await getAllProducts();
+  await loadCacheDB();
   console.log(`📦 Total produk: ${trackedProducts.length}`);
   console.log(`🔄 Auto-refresh setiap 12 jam\n`);
   await initBrowser();
