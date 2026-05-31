@@ -4,76 +4,114 @@ const express = require("express");
 const puppeteer = require("puppeteer");
 const path = require("path");
 const fs = require("fs");
+const { Pool } = require("pg");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ============================================================
-// PERSISTENSI DATA — simpan ke file data.json
+// KONEKSI POSTGRESQL
 // ============================================================
 
-const DATA_FILE = path.join(__dirname, "data.json");
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
-function loadData() {
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      const raw = fs.readFileSync(DATA_FILE, "utf8");
-      const parsed = JSON.parse(raw);
-      return parsed.products || [];
+async function initDB() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS products (
+      id BIGINT PRIMARY KEY,
+      name TEXT NOT NULL,
+      size TEXT DEFAULT '-',
+      thickness TEXT DEFAULT '-',
+      my_price INTEGER NOT NULL,
+      updated_at TEXT,
+      note TEXT DEFAULT '-',
+      competitors JSONB DEFAULT '[]'
+    )
+  `);
+  console.log("✅ Tabel products siap.");
+
+  // Cek apakah sudah ada data, kalau kosong isi data awal
+  const { rowCount } = await pool.query("SELECT 1 FROM products LIMIT 1");
+  if (rowCount === 0) {
+    const initial = [
+      {
+        id: 1,
+        name: "BORDES ALUMINIUM",
+        size: "1000x2000mm",
+        thickness: "2mm",
+        myPrice: 150000,
+        updatedAt: new Date().toISOString(),
+        note: "-",
+        competitors: [
+          { store: "Toko Rival 1", url: "https://www.tokopedia.com/mulinia/expanded-metal-metal-expanda-uk-1-2-x-2-4-m-tipe-1729851830797764411?extParam=src%3Dshop%26whid%3D16825462&aff_unique_id=&channel=others&chain_key=" },
+          { store: "Toko Rival 2", url: "https://www.tokopedia.com/mulinia/wiremesh-galvanis-kawat-loket-galvanis-lembaran-panel-galvanis-1-2-m-x-2-4-m-1200-mm-x-2400-mm-1734435682561394491?extParam=src%3Dshop%26whid%3D16825462&aff_unique_id=&channel=others&chain_key=" },
+        ],
+      },
+      {
+        id: 2,
+        name: "PLAT ALUMINIUM POLOS",
+        size: "1200x2400mm",
+        thickness: "3mm",
+        myPrice: 250000,
+        updatedAt: new Date().toISOString(),
+        note: "-",
+        competitors: [
+          { store: "Toko Rival 1", url: "https://www.tokopedia.com/mulinia/wiremesh-galvanis-kawat-loket-galvanis-lembaran-panel-galvanis-1-2-m-x-2-4-m-1200-mm-x-2400-mm-1734435682561394491?extParam=src%3Dshop%26whid%3D16825462&aff_unique_id=&channel=others&chain_key=" },
+        ],
+      },
+    ];
+    for (const p of initial) {
+      await pool.query(
+        `INSERT INTO products (id, name, size, thickness, my_price, updated_at, note, competitors)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+        [p.id, p.name, p.size, p.thickness, p.myPrice, p.updatedAt, p.note, JSON.stringify(p.competitors)]
+      );
     }
-  } catch (e) {
-    console.error("⚠️  Gagal membaca data.json:", e.message);
-  }
-  return [];
-}
-
-function saveData() {
-  try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify({ products: trackedProducts }, null, 2), "utf8");
-  } catch (e) {
-    console.error("⚠️  Gagal menyimpan data.json:", e.message);
+    console.log("📦 Data awal berhasil dimasukkan.");
   }
 }
 
-// ============================================================
-// KONFIGURASI PRODUK
-// ============================================================
-
-let trackedProducts = loadData();
-
-// Jika data.json kosong, pakai data awal
-if (trackedProducts.length === 0) {
-  trackedProducts = [
-    {
-      id: 1,
-      name: "BORDES ALUMINIUM",
-      size: "1000x2000mm",
-      thickness: "2mm",
-      myPrice: 150000,
-      updatedAt: new Date().toISOString(),
-      note: "-",
-      competitors: [
-        { store: "Toko Rival 1", url: "https://www.tokopedia.com/mulinia/expanded-metal-metal-expanda-uk-1-2-x-2-4-m-tipe-1729851830797764411?extParam=src%3Dshop%26whid%3D16825462&aff_unique_id=&channel=others&chain_key=" },
-        { store: "Toko Rival 2", url: "https://www.tokopedia.com/mulinia/wiremesh-galvanis-kawat-loket-galvanis-lembaran-panel-galvanis-1-2-m-x-2-4-m-1200-mm-x-2400-mm-1734435682561394491?extParam=src%3Dshop%26whid%3D16825462&aff_unique_id=&channel=others&chain_key=" },
-      ],
-    },
-    {
-      id: 2,
-      name: "PLAT ALUMINIUM POLOS",
-      size: "1200x2400mm",
-      thickness: "3mm",
-      myPrice: 250000,
-      updatedAt: new Date().toISOString(),
-      note: "-",
-      competitors: [
-        { store: "Toko Rival 1", url: "https://www.tokopedia.com/mulinia/wiremesh-galvanis-kawat-loket-galvanis-lembaran-panel-galvanis-1-2-m-x-2-4-m-1200-mm-x-2400-mm-1734435682561394491?extParam=src%3Dshop%26whid%3D16825462&aff_unique_id=&channel=others&chain_key=" },
-      ],
-    },
-  ];
-  saveData(); // simpan data awal ke file
+async function getAllProducts() {
+  const { rows } = await pool.query("SELECT * FROM products ORDER BY id ASC");
+  return rows.map(r => ({
+    id: r.id,
+    name: r.name,
+    size: r.size,
+    thickness: r.thickness,
+    myPrice: r.my_price,
+    updatedAt: r.updated_at,
+    note: r.note,
+    competitors: r.competitors || [],
+  }));
 }
 
-console.log(`📦 Loaded ${trackedProducts.length} produk dari storage`);
+async function saveProduct(product) {
+  await pool.query(
+    `INSERT INTO products (id, name, size, thickness, my_price, updated_at, note, competitors)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+     ON CONFLICT (id) DO UPDATE SET
+       name=$2, size=$3, thickness=$4, my_price=$5,
+       updated_at=$6, note=$7, competitors=$8`,
+    [
+      product.id, product.name, product.size, product.thickness,
+      product.myPrice, product.updatedAt, product.note,
+      JSON.stringify(product.competitors),
+    ]
+  );
+}
+
+async function deleteProduct(id) {
+  await pool.query("DELETE FROM products WHERE id=$1", [id]);
+}
+
+// ============================================================
+// KONFIGURASI PRODUK (in-memory cache)
+// ============================================================
+
+let trackedProducts = [];
 
 // ============================================================
 
@@ -114,7 +152,7 @@ let browser        = null;
 let scrapeCache    = {};
 let lastScrapeTime = null;
 let nextScrapeTime = null;
-let isScraping     = false; // ← FIX: cegah scraping overlap
+let isScraping     = false;
 
 function getChromePath() {
   if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
@@ -201,21 +239,15 @@ async function scrapePrice(url) {
 }
 
 async function scrapeAll() {
-  // ← FIX: jangan jalankan scraping jika sedang berjalan
   if (isScraping) {
     console.log("⏭️  Scraping sudah berjalan, skip.");
     return;
   }
-
   isScraping = true;
   console.log("\n⏳ Mulai scraping semua produk...");
-
   try {
     await initBrowser();
-
-    // Snapshot produk saat ini agar tidak terpengaruh perubahan di tengah proses
     const snapshot = [...trackedProducts];
-
     for (const product of snapshot) {
       for (const comp of product.competitors) {
         const key   = `${product.id}_${comp.store}`;
@@ -230,11 +262,9 @@ async function scrapeAll() {
         );
       }
     }
-
     lastScrapeTime = new Date().toISOString();
     nextScrapeTime = new Date(Date.now() + REFRESH_INTERVAL).toISOString();
     console.log("✅ Scraping selesai:", lastScrapeTime);
-    console.log("🕐 Scraping berikutnya:", nextScrapeTime);
   } catch (err) {
     console.error("❌ scrapeAll error:", err.message);
   } finally {
@@ -242,7 +272,6 @@ async function scrapeAll() {
   }
 }
 
-// Scrape satu produk saja (dipanggil saat produk baru ditambah)
 async function scrapeProduct(product) {
   try {
     await initBrowser();
@@ -265,16 +294,12 @@ async function scrapeProduct(product) {
 // ============================================================
 
 function isAdmin(req, res, next) {
-  if (req.session.user && req.session.user.role === "admin") {
-    return next();
-  }
+  if (req.session.user && req.session.user.role === "admin") return next();
   res.status(403).json({ error: "Akses admin ditolak" });
 }
 
 function isLoggedIn(req, res, next) {
-  if (req.session.user) {
-    return next();
-  }
+  if (req.session.user) return next();
   res.status(401).json({ error: "Harus login" });
 }
 
@@ -282,48 +307,49 @@ function isLoggedIn(req, res, next) {
 // API
 // ============================================================
 
-app.get("/api/products", (req, res) => {
-  const result = trackedProducts.map((product) => {
-    const compSlots = Array.from({ length: MAX_COMPETITORS }, (_, i) => {
-      const comp = product.competitors[i];
-      if (!comp) return null;
-      const key      = `${product.id}_${comp.store}`;
-      const cached   = scrapeCache[key] || {};
-      const compPrice = cached.price || null;
-      const diff      = compPrice !== null ? compPrice - product.myPrice : null;
-      const diffPct   = compPrice !== null
-        ? (((compPrice - product.myPrice) / product.myPrice) * 100).toFixed(1)
-        : null;
+app.get("/api/products", async (req, res) => {
+  try {
+    trackedProducts = await getAllProducts();
+    const result = trackedProducts.map((product) => {
+      const compSlots = Array.from({ length: MAX_COMPETITORS }, (_, i) => {
+        const comp = product.competitors[i];
+        if (!comp) return null;
+        const key       = `${product.id}_${comp.store}`;
+        const cached    = scrapeCache[key] || {};
+        const compPrice = cached.price || null;
+        const diff      = compPrice !== null ? compPrice - product.myPrice : null;
+        const diffPct   = compPrice !== null
+          ? (((compPrice - product.myPrice) / product.myPrice) * 100).toFixed(1)
+          : null;
+        return {
+          store: comp.store,
+          url: comp.url,
+          price: compPrice,
+          status: cached.status || "pending",
+          scrapedAt: cached.scrapedAt || null,
+          diff,
+          diffPercent: diffPct,
+        };
+      });
       return {
-        store: comp.store,
-        url: comp.url,
-        price: compPrice,
-        status: cached.status || "pending",
-        scrapedAt: cached.scrapedAt || null,
-        diff,
-        diffPercent: diffPct,
+        id: product.id,
+        name: product.name,
+        size: product.size || "-",
+        thickness: product.thickness || "-",
+        myPrice: product.myPrice,
+        updatedAt: product.updatedAt || null,
+        note: product.note || "-",
+        competitors: compSlots,
       };
     });
-
-    return {
-      id: product.id,
-      name: product.name,
-      size: product.size || "-",
-      thickness: product.thickness || "-",
-      myPrice: product.myPrice,
-      updatedAt: product.updatedAt || null,
-      note: product.note || "-",
-      competitors: compSlots,
-    };
-  });
-
-  res.json({ products: result, lastScrapeTime, nextScrapeTime, maxCompetitors: MAX_COMPETITORS });
+    res.json({ products: result, lastScrapeTime, nextScrapeTime, maxCompetitors: MAX_COMPETITORS });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get("/api/me", (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: "Belum login" });
-  }
+  if (!req.session.user) return res.status(401).json({ error: "Belum login" });
   res.json(req.session.user);
 });
 
@@ -339,82 +365,95 @@ app.get("/api/status", (req, res) => {
 
 app.post("/api/refresh", async (req, res) => {
   res.json({ message: "Scraping dimulai..." });
-  scrapeAll(); // fire and forget
+  scrapeAll();
 });
 
-app.post("/api/products", isAdmin, (req, res) => {
-  const { name, size, thickness, myPrice, competitors, note } = req.body;
-  if (!name || !myPrice) return res.status(400).json({ error: "name dan myPrice wajib diisi" });
+app.post("/api/products", isAdmin, async (req, res) => {
+  try {
+    const { name, size, thickness, myPrice, competitors, note } = req.body;
+    if (!name || !myPrice) return res.status(400).json({ error: "name dan myPrice wajib diisi" });
 
-  const product = {
-    id: Date.now(),
-    name,
-    size: size || "-",
-    thickness: thickness || "-",
-    myPrice: parseInt(myPrice),
-    updatedAt: new Date().toISOString(),
-    note: note || "-",
-    competitors: (competitors || []).slice(0, MAX_COMPETITORS),
-  };
-
-  trackedProducts.push(product);
-  saveData(); // ← FIX: simpan ke file setelah tambah produk
-
-  res.json({ message: "Produk ditambahkan", product });
-
-  // Scrape produk baru saja, bukan semua produk
-  scrapeProduct(product);
-});
-
-app.put("/api/products/:id/price", isAdmin, (req, res) => {
-  const productId = parseInt(req.params.id);
-  const product = trackedProducts.find(p => p.id === productId);
-  if (!product) return res.status(404).json({ error: "Produk tidak ditemukan" });
-  const myPrice = parseInt(req.body.myPrice);
-  if (isNaN(myPrice)) return res.status(400).json({ error: "Harga tidak valid" });
-  product.myPrice = myPrice;
-  product.updatedAt = new Date().toISOString();
-  saveData(); // ← FIX: simpan setelah update harga
-  res.json({ success: true, message: "Harga berhasil diupdate", myPrice });
-});
-
-app.put("/api/products/:id/competitors/:index", isAdmin, (req, res) => {
-  const productId = parseInt(req.params.id);
-  const compIndex = parseInt(req.params.index);
-  const { store, url } = req.body;
-  const product = trackedProducts.find(p => p.id === productId);
-  if (!product) return res.status(404).json({ error: "Produk tidak ditemukan" });
-  if (!product.competitors[compIndex]) return res.status(404).json({ error: "Kompetitor tidak ditemukan" });
-  product.competitors[compIndex] = { ...product.competitors[compIndex], store, url };
-  const key = `${product.id}_${store}`;
-  delete scrapeCache[key];
-  saveData(); // ← FIX: simpan setelah update kompetitor
-  res.json({ message: "Kompetitor berhasil diupdate" });
-  scrapePrice(url).then(price => {
-    scrapeCache[key] = {
-      price,
-      scrapedAt: new Date().toISOString(),
-      status: price ? "ok" : "error"
+    const product = {
+      id: Date.now(),
+      name,
+      size: size || "-",
+      thickness: thickness || "-",
+      myPrice: parseInt(myPrice),
+      updatedAt: new Date().toISOString(),
+      note: note || "-",
+      competitors: (competitors || []).slice(0, MAX_COMPETITORS),
     };
-  });
+
+    await saveProduct(product);
+    trackedProducts.push(product);
+    res.json({ message: "Produk ditambahkan", product });
+    scrapeProduct(product);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.put("/api/products/:id/note", (req, res) => {
-  const productId = parseInt(req.params.id);
-  const { note } = req.body;
-  const product = trackedProducts.find(p => p.id === productId);
-  if (!product) return res.status(404).json({ error: "Produk tidak ditemukan" });
-  product.note = note || "-";
-  product.updatedAt = new Date().toISOString();
-  saveData(); // ← FIX: simpan setelah update note
-  res.json({ message: "Keterangan berhasil diperbarui", note: product.note });
+app.put("/api/products/:id/price", isAdmin, async (req, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    const product = trackedProducts.find(p => p.id == productId);
+    if (!product) return res.status(404).json({ error: "Produk tidak ditemukan" });
+    const myPrice = parseInt(req.body.myPrice);
+    if (isNaN(myPrice)) return res.status(400).json({ error: "Harga tidak valid" });
+    product.myPrice = myPrice;
+    product.updatedAt = new Date().toISOString();
+    await saveProduct(product);
+    res.json({ success: true, message: "Harga berhasil diupdate", myPrice });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-app.delete("/api/products/:id", isAdmin, (req, res) => {
-  const id = parseInt(req.params.id);
-  trackedProducts = trackedProducts.filter((p) => p.id !== id);
-  saveData(); // ← FIX: simpan setelah hapus produk
-  res.json({ message: "Produk dihapus" });
+app.put("/api/products/:id/competitors/:index", isAdmin, async (req, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    const compIndex = parseInt(req.params.index);
+    const { store, url } = req.body;
+    const product = trackedProducts.find(p => p.id == productId);
+    if (!product) return res.status(404).json({ error: "Produk tidak ditemukan" });
+    if (!product.competitors[compIndex]) return res.status(404).json({ error: "Kompetitor tidak ditemukan" });
+    product.competitors[compIndex] = { ...product.competitors[compIndex], store, url };
+    const key = `${product.id}_${store}`;
+    delete scrapeCache[key];
+    await saveProduct(product);
+    res.json({ message: "Kompetitor berhasil diupdate" });
+    scrapePrice(url).then(price => {
+      scrapeCache[key] = { price, scrapedAt: new Date().toISOString(), status: price ? "ok" : "error" };
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/products/:id/note", async (req, res) => {
+  try {
+    const productId = parseInt(req.params.id);
+    const { note } = req.body;
+    const product = trackedProducts.find(p => p.id == productId);
+    if (!product) return res.status(404).json({ error: "Produk tidak ditemukan" });
+    product.note = note || "-";
+    product.updatedAt = new Date().toISOString();
+    await saveProduct(product);
+    res.json({ message: "Keterangan berhasil diperbarui", note: product.note });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/products/:id", isAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    await deleteProduct(id);
+    trackedProducts = trackedProducts.filter(p => p.id != id);
+    res.json({ message: "Produk dihapus" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ============================================================
@@ -440,6 +479,8 @@ app.post("/api/logout", (req, res) => {
 // ============================================================
 app.listen(PORT, async () => {
   console.log(`\n🚀 Price Tracker → http://localhost:${PORT}`);
+  await initDB();
+  trackedProducts = await getAllProducts();
   console.log(`📦 Total produk: ${trackedProducts.length}`);
   console.log(`🔄 Auto-refresh setiap 12 jam\n`);
   await initBrowser();
