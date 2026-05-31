@@ -31,9 +31,22 @@ async function initDB() {
       competitors JSONB DEFAULT '[]'
     )
   `);
-  console.log("✅ Tabel products siap.");
 
-  // Cek apakah sudah ada data, kalau kosong isi data awal
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "session" (
+      "sid" varchar NOT NULL COLLATE "default",
+      "sess" json NOT NULL,
+      "expire" timestamp(6) NOT NULL,
+      CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+    )
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire")
+  `);
+
+  console.log("✅ Tabel products & session siap.");
+
   const { rowCount } = await pool.query("SELECT 1 FROM products LIMIT 1");
   if (rowCount === 0) {
     const initial = [
