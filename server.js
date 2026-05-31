@@ -127,6 +127,8 @@ sessionStore.on('error', function(error) {
   console.error('Session store error:', error);
 });
 
+app.use(express.json());
+
 app.use(session({
   store: sessionStore,
   secret: process.env.SESSION_SECRET || "price-tracker-secret",
