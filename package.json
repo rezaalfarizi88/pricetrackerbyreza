@@ -8,10 +8,11 @@
     "install-chrome": "npx puppeteer browsers install chrome"
   },
   "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "express": "^4.22.2",
-    "express-session": "^1.19.0",
-    "pg": "^8.11.3",
-    "puppeteer": "^21.0.0"
-  }
+  "bcryptjs": "...",
+  "connect-pg-simple": "^9.0.1",  // ← tambah ini
+  "express": "...",
+  "express-session": "...",
+  "pg": "...",
+  "puppeteer": "..."
+}
 }
