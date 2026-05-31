@@ -515,16 +515,12 @@ app.delete("/api/products/:id", isAdmin, async (req, res) => {
 
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
-  const user = users.find(u => u.username === username && u.password === password);
+  const user = users.find(u => u.username === username);
   if (!user) return res.status(401).json({ error: "Username atau password salah" });
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) return res.status(401).json({ error: "Username atau password salah" });
   req.session.user = { username: user.username, role: user.role };
   res.json({ success: true, role: user.role });
-});
-
-app.post("/api/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.json({ success: true });
-  });
 });
 
 // ============================================================
