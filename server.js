@@ -207,7 +207,10 @@ function getChromePath() {
 }
 
 async function initBrowser() {
-  if (browser) return;
+  if (browser) {
+    try { await browser.close(); } catch (_) {}
+    browser = null;
+  }
   const executablePath = getChromePath();
   const opts = {
     headless: "new",
@@ -232,6 +235,7 @@ async function initBrowser() {
 async function scrapePrice(url) {
   let page = null;
   try {
+    if (!browser || !browser.isConnected()) await initBrowser();
     page = await browser.newPage();
     await page.setUserAgent(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -270,7 +274,7 @@ async function scrapePrice(url) {
         }
       }
 
-      const soldSelectors = [
+const soldSelectors = [
         '[data-testid="lblPDPDetailProductSoldCounter"]',
         '[class*="sold"]',
         '[class*="Sold"]',
@@ -303,9 +307,15 @@ async function scrapePrice(url) {
     return result;
   } catch (err) {
     console.error("Scrape error:", url, err.message);
+    // Kalau browser crash, reset supaya scrape berikutnya bisa restart
+    if (err.message.includes("Connection closed") || err.message.includes("detached")) {
+      browser = null;
+    }
     return { price: null, sold: null };
   } finally {
-    if (page) await page.close();
+    if (page) {
+      try { await page.close(); } catch (_) {}
+    }
   }
 }
 
@@ -350,6 +360,13 @@ async function scrapeAll() {
     for (const product of snapshot) {
       for (const comp of product.competitors) {
         const key = `${product.id}_${comp.store}`;
+
+        // Restart browser kalau mati
+        if (!browser || !browser.isConnected()) {
+          console.log("🔄 Browser mati, restart...");
+          await initBrowser();
+        }
+
         const { price, sold } = await scrapePrice(comp.url);
         scrapeCache[key] = {
           price,
@@ -361,6 +378,9 @@ async function scrapeAll() {
         console.log(
           `  [${product.name}] ${comp.store} → ${price ? "Rp " + price.toLocaleString("id-ID") : "Gagal"} | ${sold || "-"}`
         );
+
+        // Jeda antar request supaya tidak overload
+        await new Promise(r => setTimeout(r, 1000));
       }
     }
     lastScrapeTime = new Date().toISOString();
