@@ -569,6 +569,15 @@ tbody td:nth-child(4){
   font-weight: 500;
 }
 
+.comp-sold {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted2);
+  background: #ffffff08;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
 .comp-diff {
   font-family: var(--mono);
   font-size: 10px;
@@ -1209,6 +1218,10 @@ function renderComp(c, myPrice, productId, compIndex) {
     html += `<span class="comp-error">Gagal</span>`;
   } else {
     html += `<div class="comp-price">Rp ${fmt(c.price)}</div>`;
+
+    if (c.sold) {
+      html += `<div class="comp-sold">${c.sold}</div>`;
+    }
 
     if (c.diff === 0) {
       html += `<span class="comp-diff diff-even">= Sama</span>`;
