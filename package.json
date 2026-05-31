@@ -9,7 +9,7 @@
   },
   "dependencies": {
   "bcryptjs": "...",
-  "connect-pg-simple": "^9.0.1",  // ← tambah ini
+  "connect-pg-simple": "^9.0.1",
   "express": "...",
   "express-session": "...",
   "pg": "...",
