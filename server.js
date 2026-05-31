@@ -215,19 +215,21 @@ async function scrapePrice(url) {
     );
     await page.evaluateOnNewDocument(() => {
       Object.defineProperty(navigator, "webdriver", { get: () => false });
+      window.chrome = { runtime: {} };
     });
     await page.setRequestInterception(true);
     page.on("request", (req) => {
-      if (["image", "font", "media"].includes(req.resourceType())) req.abort();
+      if (["image", "font", "media", "stylesheet"].includes(req.resourceType())) req.abort();
       else req.continue();
     });
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
-    await page
-      .waitForSelector('[data-testid="lblPDPDetailProductPrice"], .price, [class*="price"]', { timeout: 10000 })
-      .catch(() => {});
+
+    // Ganti waitUntil dan tambah timeout lebih panjang
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+
+    // Tunggu sebentar biar JS jalan
+    await new Promise(r => setTimeout(r, 3000));
 
     const result = await page.evaluate(() => {
-      // ── HARGA ──
       const priceSelectors = [
         '[data-testid="lblPDPDetailProductPrice"]',
         '[class*="ProductPrice"]',
@@ -241,11 +243,13 @@ async function scrapePrice(url) {
         if (el) {
           const text = el.innerText || el.textContent;
           const match = text.replace(/\./g, "").match(/\d+/);
-          if (match) { price = parseInt(match[0]); break; }
+          if (match && parseInt(match[0]) > 1000) { 
+            price = parseInt(match[0]); 
+            break; 
+          }
         }
       }
 
-      // ── TERJUAL ──
       const soldSelectors = [
         '[data-testid="lblPDPDetailProductSoldCounter"]',
         '[class*="sold"]',
@@ -260,7 +264,6 @@ async function scrapePrice(url) {
         }
       }
 
-      // Fallback: cari teks yang mengandung "terjual" di semua elemen
       if (!sold) {
         const all = document.querySelectorAll("*");
         for (const el of all) {
@@ -277,7 +280,7 @@ async function scrapePrice(url) {
       return { price, sold };
     });
 
-    return result; // { price, sold }
+    return result;
   } catch (err) {
     console.error("Scrape error:", url, err.message);
     return { price: null, sold: null };
