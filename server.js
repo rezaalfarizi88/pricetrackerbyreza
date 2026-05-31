@@ -117,17 +117,24 @@ let trackedProducts = [];
 
 const pgSession = require('connect-pg-simple')(session);
 
+const sessionStore = new pgSession({
+  pool: pool,
+  tableName: 'session',
+  createTableIfMissing: true,
+});
+
+sessionStore.on('error', function(error) {
+  console.error('Session store error:', error);
+});
+
 app.use(session({
-  store: new pgSession({
-    pool: pool,
-    tableName: 'session',
-    createTableIfMissing: true,
-  }),
+  store: sessionStore,
   secret: process.env.SESSION_SECRET || "price-tracker-secret",
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: false,
+    httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000
   }
 }));
