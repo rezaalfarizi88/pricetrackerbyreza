@@ -246,10 +246,7 @@ async function scrapePrice(url) {
       else req.continue();
     });
 
-    // Ganti waitUntil dan tambah timeout lebih panjang
     await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
-
-    // Tunggu sebentar biar JS jalan
     await new Promise(r => setTimeout(r, 3000));
 
     const result = await page.evaluate(() => {
@@ -266,9 +263,9 @@ async function scrapePrice(url) {
         if (el) {
           const text = el.innerText || el.textContent;
           const match = text.replace(/\./g, "").match(/\d+/);
-          if (match && parseInt(match[0]) > 1000) { 
-            price = parseInt(match[0]); 
-            break; 
+          if (match && parseInt(match[0]) > 1000) {
+            price = parseInt(match[0]);
+            break;
           }
         }
       }
@@ -312,6 +309,34 @@ async function scrapePrice(url) {
   }
 }
 
+// ============================================================
+// CACHE DB
+// ============================================================
+
+async function saveCacheDB(key, data) {
+  await pool.query(`
+    INSERT INTO scrape_cache (key, price, sold, scraped_at, status)
+    VALUES ($1,$2,$3,$4,$5)
+    ON CONFLICT (key) DO UPDATE SET
+      price=$2, sold=$3, scraped_at=$4, status=$5
+  `, [key, data.price, data.sold, data.scrapedAt, data.status]);
+}
+
+async function loadCacheDB() {
+  const { rows } = await pool.query('SELECT * FROM scrape_cache');
+  rows.forEach(r => {
+    scrapeCache[r.key] = {
+      price: r.price,
+      sold: r.sold,
+      scrapedAt: r.scraped_at,
+      status: r.status
+    };
+  });
+  console.log(`📦 Cache dimuat: ${rows.length} entri`);
+}
+
+// ============================================================
+
 async function scrapeAll() {
   if (isScraping) {
     console.log("⏭️  Scraping sudah berjalan, skip.");
@@ -324,7 +349,7 @@ async function scrapeAll() {
     const snapshot = [...trackedProducts];
     for (const product of snapshot) {
       for (const comp of product.competitors) {
-        const key   = `${product.id}_${comp.store}`;
+        const key = `${product.id}_${comp.store}`;
         const { price, sold } = await scrapePrice(comp.url);
         scrapeCache[key] = {
           price,
@@ -348,36 +373,11 @@ async function scrapeAll() {
   }
 }
 
-Ganti fungsi scrapeAll dan scrapeProduct agar menyimpan ke DB:
-javascript// Simpan cache ke DB
-async function saveCacheDB(key, data) {
-  await pool.query(`
-    INSERT INTO scrape_cache (key, price, sold, scraped_at, status)
-    VALUES ($1,$2,$3,$4,$5)
-    ON CONFLICT (key) DO UPDATE SET
-      price=$2, sold=$3, scraped_at=$4, status=$5
-  `, [key, data.price, data.sold, data.scrapedAt, data.status]);
-}
-
-// Load cache dari DB saat startup
-async function loadCacheDB() {
-  const { rows } = await pool.query('SELECT * FROM scrape_cache');
-  rows.forEach(r => {
-    scrapeCache[r.key] = {
-      price: r.price,
-      sold: r.sold,
-      scrapedAt: r.scraped_at,
-      status: r.status
-    };
-  });
-  console.log(`📦 Cache dimuat: ${rows.length} entri`);
-}
-
 async function scrapeProduct(product) {
   try {
     await initBrowser();
     for (const comp of product.competitors) {
-      const key   = `${product.id}_${comp.store}`;
+      const key = `${product.id}_${comp.store}`;
       const { price, sold } = await scrapePrice(comp.url);
       scrapeCache[key] = {
         price,
