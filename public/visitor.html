@@ -1182,6 +1182,7 @@ const MAX_COMP = 15;
 const REFRESH_MS = 12 * 60 * 60 * 1000; // 12 jam
 
 let products = [];
+let filteredProducts = [];
 let nextScrapeTime = null;
 
 (async () => {
@@ -1209,13 +1210,36 @@ async function fetchData() {
   } catch(e) { console.error(e); }
 }
 
-// ── BUILD HEADER ──
+// ── STATE SORT ──
+let sortCol = null;   // 'name' | 'size' | 'thickness'
+let sortDir = 'asc';  // 'asc' | 'desc'
+
+// ── BUILD HEADER (ganti fungsi lama) ──
 function buildHeader() {
   const th = document.getElementById('tableHead');
+
+  const sortable = [
+    { key: 'name',      label: 'Produk'  },
+    { key: 'size',      label: 'Ukuran'  },
+    { key: 'thickness', label: 'Tebal'   },
+  ];
+
   let html = '<tr>';
-  html += '<th>Produk</th>';
-  html += '<th>Ukuran</th>';
-  html += '<th>Tebal</th>';
+
+  sortable.forEach(col => {
+    const active = sortCol === col.key;
+    const arrow  = active ? (sortDir === 'asc' ? ' ▲' : ' ▼') : ' ⇅';
+    html += `
+      <th style="cursor:pointer;user-select:none;"
+          onclick="setSort('${col.key}')">
+        ${col.label}
+        <span style="font-size:10px;opacity:${active ? 1 : 0.4};
+          color:${active ? 'var(--accent)' : 'inherit'}">
+          ${arrow}
+        </span>
+      </th>`;
+  });
+
   html += '<th>Harga Tokped</th>';
   html += '<th>Harga Termurah</th>';
   html += '<th>Keterangan</th>';
@@ -1226,11 +1250,43 @@ function buildHeader() {
   th.innerHTML = html;
 }
 
+// ── SET SORT ──
+function setSort(col) {
+  if (sortCol === col) {
+    sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortCol = col;
+    sortDir = 'asc';
+  }
+  renderTable();
+}
+
 // ── RENDER TABLE ──
 function renderTable() {
   buildHeader();
   const q = document.getElementById('searchInput').value.toLowerCase();
-  const filtered = products.filter(p => p.name.toLowerCase().includes(q));
+  let filtered = products.filter(p => p.name.toLowerCase().includes(q));
+
+  if (sortCol) {
+    filtered = [...filtered].sort((a, b) => {
+      let va = a[sortCol] ?? '';
+      let vb = b[sortCol] ?? '';
+  
+      // Coba parse angka (misal ukuran "1000x2000" atau tebal "1.2")
+      const na = parseFloat(String(va).replace(/[^\d.]/g, ''));
+      const nb = parseFloat(String(vb).replace(/[^\d.]/g, ''));
+  
+      let cmp;
+      if (!isNaN(na) && !isNaN(nb)) {
+        cmp = na - nb;                          // sort numerik
+      } else {
+        cmp = String(va).localeCompare(String(vb), 'id'); // sort alfabetik
+      }
+  
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+  }
+  filteredProducts = filtered;
   document.getElementById('shownCount').textContent = filtered.length;
   document.getElementById('prodCount').textContent = products.length + ' produk';
 
@@ -1768,7 +1824,7 @@ function toggleTheme() {
 
 function buildExportData() {
 
-  return products.map((p, idx) => {
+  return filteredProducts.map((p, idx) => {
 
     // ambil semua harga kompetitor valid
     const validPrices = p.competitors
@@ -1857,7 +1913,7 @@ async function downloadPDF() {
   )
 ]];
 
-const body = products.map((p, idx) => {
+const body = filteredProducts.map((p, idx) => {
 
   // hitung harga termurah
   const validPrices = p.competitors
