@@ -1188,6 +1188,7 @@ const MAX_COMP = 15;
 const REFRESH_MS = 12 * 60 * 60 * 1000; // 12 jam
 
 let products = [];
+let filteredProducts = [];
 let nextScrapeTime = null;
 
 // ── FETCH ──
@@ -1281,6 +1282,7 @@ function renderTable() {
       return sortDir === 'asc' ? cmp : -cmp;
     });
   }
+  filteredProducts = filtered;
   document.getElementById('shownCount').textContent = filtered.length;
   document.getElementById('prodCount').textContent = products.length + ' produk';
 
@@ -1819,7 +1821,7 @@ function toggleTheme() {
 
 function buildExportData() {
 
-  return products.map((p, idx) => {
+  return filteredProducts.map((p, idx) => {
 
     // ambil semua harga kompetitor valid
     const validPrices = p.competitors
@@ -1908,7 +1910,7 @@ async function downloadPDF() {
   )
 ]];
 
-const body = products.map((p, idx) => {
+const body = filteredProducts.map((p, idx) => {
 
   // hitung harga termurah
   const validPrices = p.competitors
