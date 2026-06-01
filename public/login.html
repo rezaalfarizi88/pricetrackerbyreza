@@ -3,403 +3,698 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Login — PriceTrack E-Commerce by Reza</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Login — PriceTrack E-Commerce</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 
+:root{
+  --ivory:     #f5f0e8;
+  --ivory-dim: #ede6d6;
+  --cream:     #faf7f2;
+  --copper:    #8b6343;
+  --copper-lt: #b08060;
+  --copper-dk: #5c3d20;
+  --brown:     #2c1a0e;
+  --warm-gray: #9e8e7e;
+  --line:      rgba(139,99,67,.15);
+  --line-lt:   rgba(139,99,67,.08);
+}
+
+html,body{height:100%}
+
 body{
   min-height:100vh;
-  background:#9cbcff;
+  background:var(--ivory);
   display:flex;
-  align-items:center;
-  justify-content:center;
-  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
-  padding:24px;
+  font-family:'Jost',system-ui,sans-serif;
+  font-weight:300;
   position:relative;
   overflow:hidden;
 }
 
 body::before{
   content:'';
-  position:absolute;
-  width:500px;height:500px;
-  background:radial-gradient(circle,rgba(16,185,129,.07) 0%,transparent 70%);
-  top:-100px;left:-100px;
-  border-radius:50%;
+  position:fixed;inset:0;
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(139,99,67,.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139,99,67,.04) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cpath d='M30 0 L60 30 L30 60 L0 30Z' stroke='rgba(139,99,67,0.06)' stroke-width='0.5' fill='none'/%3E%3Ccircle cx='30' cy='30' r='4' stroke='rgba(139,99,67,0.05)' stroke-width='0.5' fill='none'/%3E%3C/g%3E%3C/svg%3E");
   pointer-events:none;
+  z-index:0;
 }
 
-body::after{
-  content:'';
-  position:absolute;
-  width:400px;height:400px;
-  background:radial-gradient(circle,rgba(16,185,129,.05) 0%,transparent 70%);
-  bottom:-80px;right:-60px;
-  border-radius:50%;
-  pointer-events:none;
-}
-
-.card{
+.layout{
+  display:flex;
   width:100%;
-  max-width:420px;
-  background:#111827;
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:24px;
-  padding:48px 40px 40px;
+  min-height:100vh;
   position:relative;
   z-index:1;
 }
 
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  margin-bottom:36px;
+.logo-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,.25);
+  border: 1px solid rgba(255,245,220,.12);
+  flex-shrink: 0;
 }
 
-.logo-icon{
-  width:44px;height:44px;
-  background:linear-gradient(135deg,#10b981,#059669);
-  border-radius:12px;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
+.logo-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-.logo-icon span{
-  color:#fff;
-  font-weight:800;
-  font-size:16px;
-  letter-spacing:-0.5px;
-}
-
-.brand-text h1{
-  color:#f9fafb;
-  font-size:20px;
-  font-weight:700;
-  line-height:1.2;
-  letter-spacing:-0.3px;
-}
-
-.brand-text p{
-  color:#6b7280;
-  font-size:12px;
-  margin-top:2px;
-}
-
-.divider{
-  height:1px;
-  background:rgba(255,255,255,.05);
-  margin-bottom:32px;
-}
-
-.heading{
-  margin-bottom:28px;
-}
-
-.heading h2{
-  color:#f9fafb;
-  font-size:22px;
-  font-weight:700;
-  letter-spacing:-0.4px;
-}
-
-.heading p{
-  color:#6b7280;
-  font-size:13px;
-  margin-top:6px;
-}
-
-.field{
-  margin-bottom:16px;
-}
-
-.label{
-  display:block;
-  color:#9ca3af;
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:.5px;
-  text-transform:uppercase;
-  margin-bottom:8px;
-}
-
-.input-wrap{
+/* ══ LEFT ══ */
+.panel-left{
+  flex:1;
   position:relative;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+  min-width:0;
 }
 
-.input-icon{
-  position:absolute;
-  left:14px;top:50%;transform:translateY(-50%);
-  color:#4b5563;
-  font-size:16px;
+.panel-left::before{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    linear-gradient(to bottom, rgba(44,26,14,0) 30%, rgba(44,26,14,.78) 100%),
+    linear-gradient(135deg, #c9a87a 0%, #a07040 30%, #6b3d18 65%, #2c1a0e 100%);
+}
+
+.panel-left::after{
+  content:'';
+  position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cellipse cx='40' cy='20' rx='14' ry='18' stroke='rgba(255,245,220,0.07)' stroke-width='0.8'/%3E%3Cellipse cx='40' cy='60' rx='14' ry='18' stroke='rgba(255,245,220,0.07)' stroke-width='0.8'/%3E%3Cellipse cx='20' cy='40' rx='18' ry='14' stroke='rgba(255,245,220,0.07)' stroke-width='0.8'/%3E%3Cellipse cx='60' cy='40' rx='18' ry='14' stroke='rgba(255,245,220,0.07)' stroke-width='0.8'/%3E%3Ccircle cx='40' cy='40' r='6' stroke='rgba(255,245,220,0.09)' stroke-width='0.8'/%3E%3C/g%3E%3C/svg%3E");
   pointer-events:none;
 }
 
-.input{
-  width:100%;
-  padding:13px 14px 13px 42px;
-  background:#1c2535;
-  border:1px solid rgba(255,255,255,.07);
-  border-radius:12px;
-  color:#f9fafb;
-  font-size:14px;
-  font-family:inherit;
-  outline:none;
-  transition:border-color .2s,background .2s;
+.motif-ring{
+  position:absolute;border-radius:50%;
+  border:1px solid rgba(255,245,220,.08);
+  pointer-events:none;
+}
+.motif-ring-1{width:400px;height:400px;top:-80px;left:-80px}
+.motif-ring-2{width:240px;height:240px;top:80px;left:160px}
+.motif-ring-3{width:600px;height:600px;bottom:-200px;right:-160px}
+
+.left-content{
+  position:relative;
+  z-index:2;
+  padding:44px 52px;
+  display:flex;
+  flex-direction:column;
+  height:100%;
 }
 
-.input::placeholder{color:#4b5563}
+.left-logo{display:flex;align-items:center;gap:12px}
 
-.input:focus{
-  border-color:#10b981;
-  background:#1e2840;
+.logo-mark{
+  width:42px;height:42px;
+  border:1px solid rgba(255,245,220,.3);
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.logo-mark span{
+  font-family:'Cormorant Garamond',serif;
+  color:rgba(255,245,220,.9);
+  font-size:17px;font-weight:600;letter-spacing:1px;
+}
+
+.logo-wordmark{
+  font-family:'Cormorant Garamond',serif;
+  color:rgba(255,245,220,.85);
+  font-size:18px;font-weight:300;
+  letter-spacing:2px;text-transform:uppercase;
+}
+
+.left-spacer{flex:1}
+
+.left-bottom{padding-bottom:44px}
+
+/* ── Video Slideshow Card ── */
+.slideshow-card{
+  width:100%;
+  border-radius:10px;
+  overflow:hidden;
+  position:relative;
+  aspect-ratio:16/9;
+  margin-bottom:24px;
+  box-shadow:0 8px 40px rgba(0,0,0,.5);
+  border:1px solid rgba(255,245,220,.1);
+  background:#100808;
+}
+
+.slideshow-track{
+  display:flex;
+  height:100%;
+  transition:transform .7s cubic-bezier(.77,0,.18,1);
+}
+
+.slide{
+  min-width:100%;height:100%;
+  position:relative;flex-shrink:0;
+}
+
+.slide video{
+  width:100%;height:100%;
+  object-fit:cover;display:block;
+}
+
+.slide-placeholder{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;font-size:16px;
+  color:rgba(255,245,220,.35);letter-spacing:1px;
+}
+.slide-placeholder i{font-size:28px;opacity:.4}
+.slide-ph-1{background:linear-gradient(135deg,#3d1f08 0%,#7a4820 100%)}
+.slide-ph-2{background:linear-gradient(135deg,#1c2c14 0%,#365228 100%)}
+.slide-ph-3{background:linear-gradient(135deg,#161628 0%,#2e2e5e 100%)}
+
+.slideshow-card::after{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(to top, rgba(20,10,4,.45) 0%, transparent 55%);
+  pointer-events:none;z-index:2;
+}
+
+.slide-counter{
+  position:absolute;top:12px;right:14px;
+  font-size:10px;letter-spacing:2px;
+  color:rgba(255,245,220,.5);
+  font-family:'Jost',sans-serif;font-weight:300;
+  z-index:3;
+}
+
+.slide-dots{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  display:flex;gap:6px;z-index:3;
+}
+
+.dot{
+  height:2px;width:20px;
+  background:rgba(255,245,220,.28);
+  border-radius:2px;
+  transition:background .3s,width .3s;
+  cursor:pointer;
+}
+.dot.active{background:rgba(255,245,220,.88);width:32px}
+
+/* auto-progress bar */
+.slide-progress{
+  position:absolute;bottom:0;left:0;height:2px;
+  background:rgba(255,245,220,.55);
+  z-index:4;width:0%;
+}
+.slide-progress.running{
+  transition:width 5s linear;
+  width:100%;
+}
+
+/* prev/next arrows */
+.slide-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:32px;height:32px;
+  background:rgba(44,26,14,.45);
+  border:1px solid rgba(255,245,220,.12);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:3;
+  color:rgba(255,245,220,.7);font-size:14px;
+  transition:background .2s;
+}
+.slide-arrow:hover{background:rgba(139,99,67,.6)}
+.slide-prev{left:10px}
+.slide-next{right:10px}
+
+/* ── Ornament & Tagline ── */
+.ornament{
+  display:flex;align-items:center;gap:16px;
+  margin-bottom:18px;
+}
+.ornament-line{flex:0 0 36px;height:1px;background:rgba(255,245,220,.22)}
+.ornament-diamond{
+  width:5px;height:5px;
+  background:rgba(255,245,220,.4);
+  transform:rotate(45deg);
+}
+
+.left-tagline{
+  font-family:'Cormorant Garamond',serif;
+  font-size:36px;
+  font-weight:300;font-style:italic;
+  color:rgba(255,245,220,.95);
+  line-height:1.1;letter-spacing:-.3px;
+  white-space:nowrap;
+  margin-bottom:14px;
+}
+
+.left-sub{
+  color:rgba(255,245,220,.5);
+  font-size:11.5px;letter-spacing:1px;
+  text-transform:uppercase;font-weight:300;line-height:1.8;
+}
+
+/* ══ RIGHT ══ */
+.panel-right{
+  width:480px;flex-shrink:0;
+  background:var(--cream);
+  border-left:1px solid var(--line);
+  display:flex;flex-direction:column;
+  justify-content:space-between;
+  padding:52px 52px;
+  animation:slideIn .55s cubic-bezier(.22,.8,.4,1) both;
+}
+
+@keyframes slideIn{
+  from{opacity:0;transform:translateX(20px)}
+  to{opacity:1;transform:translateX(0)}
+}
+
+.form-heading{margin-bottom:40px}
+
+.form-eyebrow{
+  font-size:11px;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--copper);
+  font-weight:400;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.form-eyebrow::after{
+  content:'';flex:0 0 28px;height:1px;background:var(--copper-lt);
+}
+
+.form-heading h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:38px;font-weight:300;
+  color:var(--brown);letter-spacing:-.3px;line-height:1.15;
+}
+.form-heading h2 em{font-style:italic;color:var(--copper)}
+
+.field{margin-bottom:24px}
+
+.label{
+  display:block;font-size:10.5px;font-weight:500;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--warm-gray);margin-bottom:10px;
+}
+
+.input-wrap{position:relative}
+
+.input-icon{
+  position:absolute;left:0;top:50%;transform:translateY(-50%);
+  color:var(--copper-lt);font-size:14px;
+  pointer-events:none;transition:color .2s;
+}
+
+.input{
+  width:100%;padding:12px 0 12px 24px;
+  background:transparent;border:none;
+  border-bottom:1px solid var(--line);border-radius:0;
+  color:var(--brown);font-size:14.5px;
+  font-family:'Jost',sans-serif;font-weight:300;
+  outline:none;transition:border-color .25s;
+  appearance:none;
+  -webkit-appearance:none;
+}
+.input::placeholder{color:var(--warm-gray);opacity:.6}
+.input:focus{border-bottom-color:var(--copper)}
+.input:focus + .focus-line{transform:scaleX(1)}
+
+.focus-line{
+  position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:var(--copper);transform:scaleX(0);
+  transform-origin:left;transition:transform .3s ease;
 }
 
 .eye-btn{
-  position:absolute;
-  right:14px;top:50%;transform:translateY(-50%);
-  color:#4b5563;
-  cursor:pointer;
-  background:none;border:none;padding:0;
-  font-size:16px;
-  transition:color .2s;
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  color:var(--warm-gray);background:none;border:none;
+  padding:0;font-size:14px;cursor:pointer;transition:color .2s;
 }
-
-.eye-btn:hover{color:#9ca3af}
+.eye-btn:hover{color:var(--copper)}
 
 .options-row{
   display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:24px;margin-top:4px;
+  margin-top:-4px;margin-bottom:32px;
 }
 
 .check-label{
-  display:flex;align-items:center;gap:8px;
-  cursor:pointer;color:#9ca3af;font-size:13px;
+  display:flex;align-items:center;gap:9px;cursor:pointer;
+  color:var(--warm-gray);font-size:12.5px;letter-spacing:.3px;
+  user-select:none;
 }
-
-.check-label input{
-  accent-color:#10b981;width:15px;height:15px;cursor:pointer;
-}
+.check-label input{accent-color:var(--copper);width:14px;height:14px;cursor:pointer}
 
 .forgot{
-  color:#10b981;font-size:13px;text-decoration:none;
+  color:var(--copper);font-size:12.5px;text-decoration:none;
+  letter-spacing:.3px;border-bottom:1px solid transparent;transition:border-color .2s;
 }
-
-.forgot:hover{text-decoration:underline}
+.forgot:hover{border-bottom-color:var(--copper-lt)}
 
 .btn-login{
-  width:100%;
-  padding:14px;
-  background:#10b981;
-  border:none;border-radius:12px;
-  color:#052e16;
-  font-size:15px;
-  font-weight:700;
-  font-family:inherit;
-  cursor:pointer;
-  transition:opacity .15s,transform .1s;
-  letter-spacing:.2px;
-  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:16px;background:var(--brown);
+  border:none;border-radius:2px;color:var(--ivory);
+  font-size:12px;font-weight:400;font-family:'Jost',sans-serif;
+  letter-spacing:2.5px;text-transform:uppercase;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  transition:background .2s,transform .1s;
+  position:relative;overflow:hidden;
 }
-
-.btn-login:hover{opacity:.92}
-.btn-login:active{transform:scale(.98)}
+.btn-login::before{
+  content:'';position:absolute;inset:0;
+  background:var(--copper);transform:scaleX(0);
+  transform-origin:left;transition:transform .35s ease;
+}
+.btn-login:hover::before{transform:scaleX(1)}
+.btn-login span,.btn-login i{position:relative;z-index:1}
+.btn-login:active{transform:scale(.99)}
 
 .error-box{
-  background:rgba(239,68,68,.08);
-  border:1px solid rgba(239,68,68,.2);
-  border-radius:10px;
-  padding:11px 14px;
-  color:#f87171;
-  font-size:13px;
-  margin-bottom:20px;
-  display:none;
-  align-items:center;
-  gap:8px;
+  display:none;align-items:center;gap:10px;
+  padding:12px 16px;border-left:2px solid var(--copper);
+  background:rgba(139,99,67,.06);color:var(--copper-dk);
+  font-size:13px;margin-bottom:24px;letter-spacing:.2px;
 }
 
-.section-divider{
-  display:flex;align-items:center;gap:12px;
-  margin:24px 0 20px;
+.security-note{
+  display:flex;align-items:center;gap:8px;margin-top:24px;
+  color:var(--warm-gray);font-size:11.5px;letter-spacing:.5px;
 }
+.security-note i{font-size:13px;color:var(--copper-lt)}
 
-.section-divider::before,.section-divider::after{
-  content:'';flex:1;height:1px;background:rgba(255,255,255,.05);
+.form-footer{
+  border-top:1px solid var(--line);padding-top:22px;
+  display:flex;align-items:center;justify-content:space-between;
 }
+.footer-brand{font-family:'Cormorant Garamond',serif;font-size:13px;color:var(--warm-gray);letter-spacing:1px}
+.footer-copy{color:var(--warm-gray);font-size:11px;letter-spacing:.5px}
 
-.section-divider span{color:#4b5563;font-size:12px}
-
-.demo-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+@media(max-width:900px){
+  .panel-left{display:none}
+  .panel-right{width:100%;padding:40px 32px}
 }
-
-.demo-card{
-  background:#0f1724;
-  border:1px solid rgba(255,255,255,.05);
-  border-radius:10px;
-  padding:12px 14px;
-}
-
-.demo-role{
-  color:#10b981;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.5px;
-  text-transform:uppercase;
-  margin-bottom:6px;
-}
-
-.demo-cred{
-  color:#6b7280;
-  font-size:12px;
-  line-height:1.7;
-}
-
-.demo-cred b{color:#9ca3af;font-weight:600}
-
-.brand-icon{
-  width:38px;
-  height:38px;
-
-  border-radius:16px; /* membulat */
-  overflow:hidden;
-
-  background:#fff;
-  
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  box-shadow:
-    0 4px 12px rgba(0,0,0,.25),
-    inset 0 1px 0 rgba(255,255,255,.2);
-
-  border:1px solid rgba(255,255,255,.08);
-}
-
-.brand-icon img{
-  width:98%;
-  height:98%;
-  object-fit:cover;
-  display:block;
-}
-
 </style>
 </head>
 <body>
 
-<div class="card">
+<div class="layout">
 
-  <div class="brand">
-    <div class="brand-icon"><img src="logo.png" alt="Logo"></div>
-    <div class="brand-text">
-      <h1>PriceTrack <span style="color:#10b981">E-Commerce</span></h1>
-      <p>Competitor price monitoring dashboard</p>
+  <!-- LEFT -->
+  <div class="panel-left">
+    <div class="motif-ring motif-ring-1"></div>
+    <div class="motif-ring motif-ring-2"></div>
+    <div class="motif-ring motif-ring-3"></div>
+
+    <div class="left-content">
+      <div class="left-logo">
+        <div class="logo-mark">
+          <img src="logo.png" alt="Logo"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          <span style="display:none">PT</span>
+        </div>
+        <div class="logo-wordmark">PriceTrack</div>
+      </div>
+
+      <div class="left-spacer"></div>
+
+      <div class="left-bottom">
+
+        <!-- ═══ VIDEO SLIDESHOW CARD ═══
+             Ganti src="video1.mp4", "video2.mp4", "video3.mp4"
+             dengan path/URL video Anda sendiri.
+             Tambah atau hapus blok <div class="slide"> sesuai kebutuhan.
+        ══════════════════════════════ -->
+        <div class="slideshow-card">
+          <div class="slideshow-track" id="slideshowTrack">
+
+            <!-- SLIDE 1 -->
+            <div class="slide">
+              <video src="video1.mp4" autoplay muted playsinline loop
+                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"></video>
+              <div class="slide-placeholder slide-ph-1" style="display:none">
+                <i class="ti ti-video"></i>
+                video1.mp4
+              </div>
+            </div>
+
+            <!-- SLIDE 2 -->
+            <div class="slide">
+              <video src="video2.mp4" muted playsinline
+                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"></video>
+              <div class="slide-placeholder slide-ph-2" style="display:none">
+                <i class="ti ti-video"></i>
+                video2.mp4
+              </div>
+            </div>
+
+            <!-- SLIDE 3 -->
+            <div class="slide">
+              <video src="video3.mp4" muted playsinline
+                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"></video>
+              <div class="slide-placeholder slide-ph-3" style="display:none">
+                <i class="ti ti-video"></i>
+                video3.mp4
+              </div>
+            </div>
+
+          </div>
+
+          <!-- counter -->
+          <div class="slide-counter"><span id="slideNum">1</span> / <span id="slideTotal">3</span></div>
+
+          <!-- arrows -->
+          <div class="slide-arrow slide-prev" onclick="moveSlide(-1)"><i class="ti ti-chevron-left"></i></div>
+          <div class="slide-arrow slide-next" onclick="moveSlide(1)"><i class="ti ti-chevron-right"></i></div>
+
+          <!-- dots -->
+          <div class="slide-dots" id="slideDots"></div>
+
+          <!-- progress bar -->
+          <div class="slide-progress" id="slideProgress"></div>
+        </div>
+        <!-- ═══ END SLIDESHOW ═══ -->
+
+        <div class="ornament">
+          <div class="ornament-line"></div>
+          <div class="ornament-diamond"></div>
+          <div class="ornament-line"></div>
+        </div>
+
+        <div class="left-tagline">Pantau harga, raih peluang.</div>
+        <div class="left-sub">
+          Platform pemantauan harga kompetitor
+          untuk keputusan bisnis yang lebih cerdas
+        </div>
+
+      </div>
     </div>
   </div>
 
-  <div class="divider"></div>
+  <!-- RIGHT -->
+  <div class="panel-right">
+    <div class="form-top">
+      <div class="form-heading">
+        <div class="form-eyebrow">Selamat datang</div>
+        <h2>Masuk ke<br><em>Dasbor Anda</em></h2>
+      </div>
 
-  <div class="heading">
-    <h2>Selamat datang</h2>
-    <p>Masuk untuk mengakses dasbor harga kompetitor</p>
-  </div>
+      <div id="error-box" class="error-box">
+        <i class="ti ti-alert-circle"></i>
+        <span id="error-msg">Username atau password salah.</span>
+      </div>
 
-  <div id="error-box" class="error-box">
-    <i class="ti ti-alert-circle"></i>
-    <span id="error-msg">Username atau password salah.</span>
-  </div>
+      <div class="field">
+        <label class="label" for="username">Username</label>
+        <div class="input-wrap">
+          <i class="ti ti-user input-icon"></i>
+          <input type="text" id="username" class="input" placeholder="Masukkan username Anda">
+          <div class="focus-line"></div>
+        </div>
+      </div>
 
-  <div class="field">
-    <label class="label" for="username">Username</label>
-    <div class="input-wrap">
-      <i class="ti ti-user input-icon"></i>
-      <input type="text" id="username" class="input" placeholder="Masukkan username">
-    </div>
-  </div>
+      <div class="field">
+        <label class="label" for="password">Password</label>
+        <div class="input-wrap">
+          <i class="ti ti-lock input-icon"></i>
+          <input type="password" id="password" class="input" placeholder="Masukkan password Anda" style="padding-right:28px">
+          <button class="eye-btn" onclick="togglePw()" aria-label="Tampilkan password">
+            <i class="ti ti-eye" id="eye-icon"></i>
+          </button>
+          <div class="focus-line"></div>
+        </div>
+      </div>
 
-  <div class="field">
-    <label class="label" for="password">Password</label>
-    <div class="input-wrap">
-      <i class="ti ti-lock input-icon"></i>
-      <input type="password" id="password" class="input" placeholder="Masukkan password" style="padding-right:44px">
-      <button class="eye-btn" onclick="togglePw()" aria-label="Tampilkan password">
-        <i class="ti ti-eye" id="eye-icon"></i>
+      <div class="options-row">
+        <label class="check-label">
+          <input type="checkbox" id="remember"> Ingat perangkat ini
+        </label>
+        <a href="#" class="forgot">Lupa password?</a>
+      </div>
+
+      <button class="btn-login" onclick="doLogin()">
+        <span>Masuk</span>
+        <i class="ti ti-arrow-narrow-right" aria-hidden="true"></i>
       </button>
+
+      <div class="security-note">
+        <i class="ti ti-shield-lock" aria-hidden="true"></i>
+        Koneksi dienkripsi dengan SSL/TLS
+      </div>
+    </div>
+
+    <div class="form-footer">
+      <div class="footer-brand">PriceTrack E-Commerce</div>
+      <div class="footer-copy">&copy; 2026 All rights reserved</div>
     </div>
   </div>
-
-  <div class="options-row">
-    <label class="check-label">
-      <input type="checkbox" id="remember"> Ingat saya
-    </label>
-    <a href="#" class="forgot">Lupa password?</a>
-  </div>
-
-  <button class="btn-login" onclick="doLogin()">
-    Masuk
-    <i class="ti ti-arrow-right"></i>
-  </button>
 
 </div>
 
 <script>
-function togglePw(){
-  const pw = document.getElementById('password');
-  const ic = document.getElementById('eye-icon');
-  if(pw.type === 'password'){
-    pw.type = 'text';
-    ic.className = 'ti ti-eye-off';
-  } else {
-    pw.type = 'password';
-    ic.className = 'ti ti-eye';
+/* ═══════════════════════════════
+   SLIDESHOW ENGINE
+   Interval: 5 detik per slide
+   Ubah INTERVAL_MS untuk mengatur kecepatan
+═══════════════════════════════ */
+(function(){
+  const INTERVAL_MS = 5000;
+
+  const track    = document.getElementById('slideshowTrack');
+  const slides   = track.querySelectorAll('.slide');
+  const dotsWrap = document.getElementById('slideDots');
+  const numEl    = document.getElementById('slideNum');
+  const totalEl  = document.getElementById('slideTotal');
+  const progress = document.getElementById('slideProgress');
+
+  const total = slides.length;
+  totalEl.textContent = total;
+
+  let current = 0;
+  let timer   = null;
+
+  /* build dots */
+  slides.forEach((_,i)=>{
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===0?' active':'');
+    d.addEventListener('click', ()=> goSlide(i));
+    dotsWrap.appendChild(d);
+  });
+
+  function goSlide(idx){
+    /* stop current video */
+    const prevVideo = slides[current].querySelector('video');
+    if(prevVideo){ prevVideo.pause(); }
+
+    current = (idx + total) % total;
+
+    /* translate track */
+    track.style.transform = `translateX(-${current * 100}%)`;
+
+    /* update dots */
+    dotsWrap.querySelectorAll('.dot').forEach((d,i)=>{
+      d.classList.toggle('active', i===current);
+    });
+
+    /* update counter */
+    numEl.textContent = current + 1;
+
+    /* play current video */
+    const vid = slides[current].querySelector('video');
+    if(vid){
+      vid.currentTime = 0;
+      vid.play().catch(()=>{});
+    }
+
+    /* restart progress bar */
+    restartProgress();
   }
+
+  function restartProgress(){
+    progress.style.transition = 'none';
+    progress.style.width = '0%';
+    void progress.offsetWidth; /* reflow */
+    progress.style.transition = `width ${INTERVAL_MS}ms linear`;
+    progress.style.width = '100%';
+  }
+
+  function startTimer(){
+    clearInterval(timer);
+    timer = setInterval(()=> goSlide(current + 1), INTERVAL_MS);
+  }
+
+  /* expose for arrow buttons */
+  window.moveSlide = function(dir){ goSlide(current + dir); startTimer(); };
+  window.goSlide   = function(idx){ goSlide(idx); startTimer(); };
+
+  /* init */
+  track.style.transition = 'transform .7s cubic-bezier(.77,0,.18,1)';
+  const firstVid = slides[0].querySelector('video');
+  if(firstVid) firstVid.play().catch(()=>{});
+  restartProgress();
+  startTimer();
+})();
+
+/* ═══ LOGIN ═══ */
+function togglePw(){
+  const pw=document.getElementById('password');
+  const ic=document.getElementById('eye-icon');
+  pw.type=pw.type==='password'?'text':'password';
+  ic.className=pw.type==='password'?'ti ti-eye':'ti ti-eye-off';
 }
 
 async function doLogin(){
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
-  const errBox  = document.getElementById('error-box');
-  const errMsg  = document.getElementById('error-msg');
-  errBox.style.display = 'none';
+  const username=document.getElementById('username').value.trim();
+  const password=document.getElementById('password').value;
+  const errBox=document.getElementById('error-box');
+  const errMsg=document.getElementById('error-msg');
+  errBox.style.display='none';
 
-  if(!username || !password){
-    errMsg.textContent = 'Username dan password wajib diisi.';
-    errBox.style.display = 'flex';
+  if(!username||!password){
+    errMsg.textContent='Username dan password wajib diisi.';
+    errBox.style.display='flex';
     return;
   }
 
   try{
-    const res  = await fetch('/api/login',{
+    const res=await fetch('/api/login',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username, password})
+      body:JSON.stringify({username,password})
     });
-    const data = await res.json();
-
+    const data=await res.json();
     if(!res.ok){
-      errMsg.textContent = data.error || 'Login gagal.';
-      errBox.style.display = 'flex';
+      errMsg.textContent=data.error||'Login gagal. Periksa kembali kredensial Anda.';
+      errBox.style.display='flex';
       return;
     }
-
-    window.location.href = data.role === 'admin' ? '/admin.html' : '/visitor.html';
-
-  } catch(e){
-    errMsg.textContent = 'Tidak dapat terhubung ke server.';
-    errBox.style.display = 'flex';
+    window.location.href=data.role==='admin'?'/admin.html':'/visitor.html';
+  }catch(e){
+    errMsg.textContent='Tidak dapat terhubung ke server. Hubungi administrator.';
+    errBox.style.display='flex';
   }
 }
 
-document.getElementById('username').addEventListener('keydown', e => {
-  if(e.key === 'Enter') document.getElementById('password').focus();
+document.getElementById('username').addEventListener('keydown',e=>{
+  if(e.key==='Enter')document.getElementById('password').focus();
 });
-document.getElementById('password').addEventListener('keydown', e => {
-  if(e.key === 'Enter') doLogin();
+document.getElementById('password').addEventListener('keydown',e=>{
+  if(e.key==='Enter')doLogin();
 });
 </script>
-
 </body>
 </html>
