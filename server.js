@@ -221,8 +221,6 @@ async function initBrowser() {
       "--disable-dev-shm-usage",
       "--disable-gpu",
       "--no-first-run",
-      "--no-zygote",
-      "--single-process",
     ],
   };
   if (executablePath) {
@@ -238,9 +236,24 @@ async function scrapePrice(url) {
   try {
     if (!browser || !browser.isConnected()) await initBrowser();
     page = await browser.newPage();
-    await page.setUserAgent(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    );
+
+    // ── FIX 4 TARUH DI SINI ──
+    const agents = [
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
+    ];
+    await page.setUserAgent(agents[Math.floor(Math.random() * agents.length)]);
+
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
+    });
+    // ── END FIX 4 ──
+    
     await page.evaluateOnNewDocument(() => {
       Object.defineProperty(navigator, "webdriver", { get: () => false });
       window.chrome = { runtime: {} };
@@ -333,6 +346,18 @@ async function saveCacheDB(key, data) {
   `, [key, data.price, data.sold, data.scrapedAt, data.status]);
 }
 
+let scrapeCount = 0;
+
+// di dalam loop scrapeAll, setelah saveCacheDB:
+scrapeCount++;
+if (scrapeCount % 3 === 0) {
+  console.log('🔄 Restart browser setiap 3 request...');
+  try { await browser.close(); } catch (_) {}
+  browser = null;
+  await initBrowser();
+  await new Promise(r => setTimeout(r, 2000));
+}
+
 async function loadCacheDB() {
   const { rows } = await pool.query('SELECT * FROM scrape_cache');
   rows.forEach(r => {
@@ -381,7 +406,8 @@ async function scrapeAll() {
         );
 
         // Jeda antar request supaya tidak overload
-        await new Promise(r => setTimeout(r, 1000));
+        const delay = 4000 + Math.random() * 3000; // 4–7 detik random
+        await new Promise(r => setTimeout(r, delay));
       }
     }
     lastScrapeTime = new Date().toISOString();
