@@ -151,16 +151,17 @@ sessionStore.on('error', function(error) {
 });
 
 app.use(express.json());
-
+app.set('trust proxy', 1);
 app.use(session({
   store: sessionStore,
   secret: process.env.SESSION_SECRET || "price-tracker-secret",
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: 'lax'
   }
 }));
 
@@ -170,6 +171,8 @@ app.use('/images', express.static(path.join(__dirname, "images")));
 app.get("/", (req, res) => {
   res.redirect("/login.html");
 });
+
+
 
 const users = [
   {
@@ -629,6 +632,14 @@ app.post("/api/login", async (req, res) => {
   if (!valid) return res.status(401).json({ error: "Username atau password salah" });
   req.session.user = { username: user.username, role: user.role };
   res.json({ success: true, role: user.role });
+});
+
+app.post("/api/logout", (req, res) => {
+  req.session.destroy(err => {
+    if (err) return res.status(500).json({ error: "Gagal logout" });
+    res.clearCookie('connect.sid');
+    res.json({ success: true });
+  });
 });
 
 // ============================================================
