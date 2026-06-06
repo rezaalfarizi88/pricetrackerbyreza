@@ -1844,10 +1844,15 @@ function buildExportData() {
 
     for (let i = 0; i < MAX_COMP; i++) {
       const c = p.competitors[i];
-      // ── UBAH: pisah jadi 2 kolom, tambah Terjual ──
-      row[`Kompetitor ${i + 1} Toko`]    = c ? (c.store || '-') : '-';
-      row[`Kompetitor ${i + 1} Harga`]   = c && c.price ? c.price : '-';
-      row[`Kompetitor ${i + 1} Terjual`] = c && c.sold  ? c.sold  : '-';
+      // ── 1 kolom, isi: Nama Toko \n Harga \n Terjual ──
+      if (c && (c.store || c.price)) {
+        const toko    = c.store || '-';
+        const harga   = c.price ? `Rp ${fmt(c.price)}` : '-';
+        const terjual = c.sold  ? c.sold : '-';
+        row[`Kompetitor ${i + 1}`] = `${toko}\n${harga}\n${terjual}`;
+      } else {
+        row[`Kompetitor ${i + 1}`] = '-';
+      }
     }
 
     return row;
@@ -1886,36 +1891,43 @@ async function downloadPDF() {
     format: 'a3'
   });
 
- function buildExportData() {
-  return filteredProducts.map((p, idx) => {
-    const validPrices = p.competitors
-      .filter(c => c && c.price)
-      .map(c => Number(String(c.price).replace(/[^\d]/g, '')))
-      .filter(v => !isNaN(v));
+ const headers = [[
+  'No', 'Produk', 'Ukuran', 'Tebal',
+  'Harga Tokped', 'Harga Termurah', 'Keterangan',
+  ...Array.from({ length: MAX_COMP }, (_, i) => `Kompetitor ${i + 1}`)
+]];
 
-    const cheapest = validPrices.length > 0 ? Math.min(...validPrices) : '-';
+const body = filteredProducts.map((p, idx) => {
+  const validPrices = p.competitors
+    .filter(c => c && c.price)
+    .map(c => c.price);
 
-    const row = {
-      No: idx + 1,
-      Produk: p.name,
-      Ukuran: p.size,
-      Tebal: p.thickness,
-      "Harga Tokped": p.myPrice,
-      "Harga Termurah": cheapest,
-      Keterangan: p.note || '-'
-    };
+  const cheapestPrice = validPrices.length ? Math.min(...validPrices) : null;
 
-    for (let i = 0; i < MAX_COMP; i++) {
-      const c = p.competitors[i];
-      // ── UBAH: pisah jadi 2 kolom, tambah Terjual ──
-      row[`Kompetitor ${i + 1} Toko`]    = c ? (c.store || '-') : '-';
-      row[`Kompetitor ${i + 1} Harga`]   = c && c.price ? c.price : '-';
-      row[`Kompetitor ${i + 1} Terjual`] = c && c.sold  ? c.sold  : '-';
+  const row = [
+    idx + 1,
+    p.name,
+    p.size,
+    p.thickness,
+    `Rp ${fmt(p.myPrice)}`,
+    cheapestPrice ? `Rp ${fmt(cheapestPrice)}` : '-',
+    p.note || '-'
+  ];
+
+  for (let i = 0; i < MAX_COMP; i++) {
+    const c = p.competitors[i];
+    if (c && (c.store || c.price)) {
+      const toko    = c.store || '-';
+      const harga   = c.price ? `Rp ${fmt(c.price)}` : '-';
+      const terjual = c.sold  ? c.sold : '-';
+      row.push(`${toko}\n${harga}\n${terjual}`);
+    } else {
+      row.push('-');
     }
+  }
 
-    return row;
-  });
-}
+  return row;
+});
 
   doc.setFontSize(16);
 
