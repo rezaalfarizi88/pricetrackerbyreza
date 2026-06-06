@@ -1841,16 +1841,21 @@ function buildExportData() {
 
     for (let i = 0; i < MAX_COMP; i++) {
       const c = p.competitors[i];
-      // ── UBAH: pisah jadi 2 kolom, tambah Terjual ──
-      row[`Kompetitor ${i + 1} Toko`]    = c ? (c.store || '-') : '-';
-      row[`Kompetitor ${i + 1} Harga`]   = c && c.price ? c.price : '-';
-      row[`Kompetitor ${i + 1} Terjual`] = c && c.sold  ? c.sold  : '-';
+      // ── 1 kolom, isi: Nama Toko \n Harga \n Terjual ──
+      if (c && (c.store || c.price)) {
+        const toko    = c.store || '-';
+        const harga   = c.price ? `Rp ${fmt(c.price)}` : '-';
+        const terjual = c.sold  ? c.sold : '-';
+        row[`Kompetitor ${i + 1}`] = `${toko}\n${harga}\n${terjual}`;
+      } else {
+        row[`Kompetitor ${i + 1}`] = '-';
+      }
     }
 
     return row;
   });
 }
-
+  
 function downloadExcel() {
 
   const data = buildExportData();
@@ -1886,11 +1891,7 @@ async function downloadPDF() {
  const headers = [[
   'No', 'Produk', 'Ukuran', 'Tebal',
   'Harga Tokped', 'Harga Termurah', 'Keterangan',
-  ...Array.from({ length: MAX_COMP }, (_, i) => [
-    `Komp ${i+1} Toko`,
-    `Komp ${i+1} Harga`,
-    `Komp ${i+1} Terjual`
-  ]).flat()
+  ...Array.from({ length: MAX_COMP }, (_, i) => `Kompetitor ${i + 1}`)
 ]];
 
 const body = filteredProducts.map((p, idx) => {
@@ -1912,10 +1913,14 @@ const body = filteredProducts.map((p, idx) => {
 
   for (let i = 0; i < MAX_COMP; i++) {
     const c = p.competitors[i];
-    // ── UBAH: 3 kolom per kompetitor, tambah Terjual ──
-    row.push(c ? (c.store || '-') : '-');
-    row.push(c && c.price ? `Rp ${fmt(c.price)}` : '-');
-    row.push(c && c.sold  ? c.sold : '-');
+    if (c && (c.store || c.price)) {
+      const toko    = c.store || '-';
+      const harga   = c.price ? `Rp ${fmt(c.price)}` : '-';
+      const terjual = c.sold  ? c.sold : '-';
+      row.push(`${toko}\n${harga}\n${terjual}`);
+    } else {
+      row.push('-');
+    }
   }
 
   return row;
