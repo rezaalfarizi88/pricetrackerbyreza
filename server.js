@@ -374,6 +374,16 @@ async function scrapeAll() {
     for (const product of snapshot) {
       for (const comp of product.competitors) {
         const key = `${product.id}_${comp.store}`;
+        
+        // ── Skip kalau sudah di-scrape dalam 11 jam terakhir ──
+        const cached = scrapeCache[key];
+        if (cached && cached.scrapedAt) {
+          const age = Date.now() - new Date(cached.scrapedAt).getTime();
+          if (age < 11 * 60 * 60 * 1000) {
+            console.log(`  ⏭ Skip (cache masih fresh): ${comp.store}`);
+            continue;
+          }
+        }
 
         // Restart browser kalau mati
         if (!browser || !browser.isConnected()) {
@@ -395,16 +405,16 @@ async function scrapeAll() {
 
         // ── FIX 2: restart browser setiap 3 request ──
         scrapeCount++;
-        if (scrapeCount % 3 === 0) {
-          console.log('🔄 Restart browser setiap 3 request...');
+        if (scrapeCount % 10 === 0) {
+          console.log('🔄 Restart browser...');
           try { await browser.close(); } catch (_) {}
           browser = null;
           await initBrowser();
-          await new Promise(r => setTimeout(r, 2000));
+          await new Promise(r => setTimeout(r, 3000));
         }
 
         // ── FIX 1: jeda random 4-7 detik ──
-        const delay = 4000 + Math.random() * 3000;
+        const delay = 6000 + Math.random() * 6000;
         await new Promise(r => setTimeout(r, delay));
       }
     }
