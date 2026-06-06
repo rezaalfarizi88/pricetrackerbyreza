@@ -586,12 +586,18 @@ app.put("/api/products/:id/competitors/:index", isAdmin, async (req, res) => {
     delete scrapeCache[key];
     await saveProduct(product);
     res.json({ message: "Kompetitor berhasil diupdate" });
-    scrapePrice(url).then(price => {
-      scrapeCache[key] = { price, scrapedAt: new Date().toISOString(), status: price ? "ok" : "error" };
+    scrapePrice(url).then(({ price, sold }) => {
+      scrapeCache[key] = {
+        price,
+        sold,
+        scrapedAt: new Date().toISOString(),
+        status: price ? "ok" : "error"
+      };
+      saveCacheDB(key, scrapeCache[key]);
     });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
 });
 
 app.put("/api/products/:id/note", async (req, res) => {
