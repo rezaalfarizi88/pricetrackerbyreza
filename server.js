@@ -192,6 +192,7 @@ let scrapeCache    = {};
 let lastScrapeTime = null;
 let nextScrapeTime = null;
 let isScraping     = false;
+let scrapeCount    = 0; // ← FIX 2: counter restart browser
 
 function getChromePath() {
   if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
@@ -237,14 +238,13 @@ async function scrapePrice(url) {
     if (!browser || !browser.isConnected()) await initBrowser();
     page = await browser.newPage();
 
-    // ── FIX 4 TARUH DI SINI ──
+    // ── FIX 4: rotate user agent + headers ──
     const agents = [
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
     ];
     await page.setUserAgent(agents[Math.floor(Math.random() * agents.length)]);
-
     await page.setExtraHTTPHeaders({
       'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -253,7 +253,7 @@ async function scrapePrice(url) {
       'Pragma': 'no-cache',
     });
     // ── END FIX 4 ──
-    
+
     await page.evaluateOnNewDocument(() => {
       Object.defineProperty(navigator, "webdriver", { get: () => false });
       window.chrome = { runtime: {} };
@@ -288,7 +288,7 @@ async function scrapePrice(url) {
         }
       }
 
-const soldSelectors = [
+      const soldSelectors = [
         '[data-testid="lblPDPDetailProductSoldCounter"]',
         '[class*="sold"]',
         '[class*="Sold"]',
@@ -321,7 +321,6 @@ const soldSelectors = [
     return result;
   } catch (err) {
     console.error("Scrape error:", url, err.message);
-    // Kalau browser crash, reset supaya scrape berikutnya bisa restart
     if (err.message.includes("Connection closed") || err.message.includes("detached")) {
       browser = null;
     }
@@ -346,18 +345,6 @@ async function saveCacheDB(key, data) {
   `, [key, data.price, data.sold, data.scrapedAt, data.status]);
 }
 
-let scrapeCount = 0;
-
-// di dalam loop scrapeAll, setelah saveCacheDB:
-scrapeCount++;
-if (scrapeCount % 3 === 0) {
-  console.log('🔄 Restart browser setiap 3 request...');
-  try { await browser.close(); } catch (_) {}
-  browser = null;
-  await initBrowser();
-  await new Promise(r => setTimeout(r, 2000));
-}
-
 async function loadCacheDB() {
   const { rows } = await pool.query('SELECT * FROM scrape_cache');
   rows.forEach(r => {
@@ -379,6 +366,7 @@ async function scrapeAll() {
     return;
   }
   isScraping = true;
+  scrapeCount = 0; // reset counter tiap sesi scraping baru
   console.log("\n⏳ Mulai scraping semua produk...");
   try {
     await initBrowser();
@@ -405,8 +393,18 @@ async function scrapeAll() {
           `  [${product.name}] ${comp.store} → ${price ? "Rp " + price.toLocaleString("id-ID") : "Gagal"} | ${sold || "-"}`
         );
 
-        // Jeda antar request supaya tidak overload
-        const delay = 4000 + Math.random() * 3000; // 4–7 detik random
+        // ── FIX 2: restart browser setiap 3 request ──
+        scrapeCount++;
+        if (scrapeCount % 3 === 0) {
+          console.log('🔄 Restart browser setiap 3 request...');
+          try { await browser.close(); } catch (_) {}
+          browser = null;
+          await initBrowser();
+          await new Promise(r => setTimeout(r, 2000));
+        }
+
+        // ── FIX 1: jeda random 4-7 detik ──
+        const delay = 4000 + Math.random() * 3000;
         await new Promise(r => setTimeout(r, delay));
       }
     }
