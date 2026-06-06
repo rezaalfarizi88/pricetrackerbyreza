@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="icon" type="image/png" href="/logo.png">
 <title>Price Tracker Multi Lintas Niaga — Perbandingan Harga Kompetitor</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
@@ -1820,20 +1821,13 @@ function toggleTheme() {
 // ===============================
 
 function buildExportData() {
-
   return filteredProducts.map((p, idx) => {
-
-    // ambil semua harga kompetitor valid
     const validPrices = p.competitors
       .filter(c => c && c.price)
       .map(c => Number(String(c.price).replace(/[^\d]/g, '')))
       .filter(v => !isNaN(v));
 
-    // cari harga termurah
-    const cheapest =
-      validPrices.length > 0
-        ? Math.min(...validPrices)
-        : '-';
+    const cheapest = validPrices.length > 0 ? Math.min(...validPrices) : '-';
 
     const row = {
       No: idx + 1,
@@ -1841,22 +1835,16 @@ function buildExportData() {
       Ukuran: p.size,
       Tebal: p.thickness,
       "Harga Tokped": p.myPrice,
-
-      // kolom harga termurah
       "Harga Termurah": cheapest,
-
       Keterangan: p.note || '-'
     };
 
-    // kompetitor gabung nama + harga
     for (let i = 0; i < MAX_COMP; i++) {
-
       const c = p.competitors[i];
-
-      row[`Kompetitor ${i + 1}`] =
-        c && (c.store || c.price)
-          ? `${c.store || '-'} (${c.price || '-'})`
-          : '-';
+      // ── UBAH: pisah jadi 2 kolom, tambah Terjual ──
+      row[`Kompetitor ${i + 1} Toko`]    = c ? (c.store || '-') : '-';
+      row[`Kompetitor ${i + 1} Harga`]   = c && c.price ? c.price : '-';
+      row[`Kompetitor ${i + 1} Terjual`] = c && c.sold  ? c.sold  : '-';
     }
 
     return row;
@@ -1896,30 +1884,21 @@ async function downloadPDF() {
   });
 
  const headers = [[
-  'No',
-  'Produk',
-  'Ukuran',
-  'Tebal',
-  'Harga Tokped',
-  'Harga Termurah',
-  'Keterangan',
-
-  ...Array.from(
-    { length: MAX_COMP },
-    (_, i) => `Kompetitor ${i+1}`
-  )
+  'No', 'Produk', 'Ukuran', 'Tebal',
+  'Harga Tokped', 'Harga Termurah', 'Keterangan',
+  ...Array.from({ length: MAX_COMP }, (_, i) => [
+    `Komp ${i+1} Toko`,
+    `Komp ${i+1} Harga`,
+    `Komp ${i+1} Terjual`
+  ]).flat()
 ]];
 
 const body = filteredProducts.map((p, idx) => {
-
-  // hitung harga termurah
   const validPrices = p.competitors
     .filter(c => c && c.price)
     .map(c => c.price);
 
-  const cheapestPrice = validPrices.length
-    ? Math.min(...validPrices)
-    : null;
+  const cheapestPrice = validPrices.length ? Math.min(...validPrices) : null;
 
   const row = [
     idx + 1,
@@ -1927,29 +1906,21 @@ const body = filteredProducts.map((p, idx) => {
     p.size,
     p.thickness,
     `Rp ${fmt(p.myPrice)}`,
-
-    cheapestPrice
-      ? `Rp ${fmt(cheapestPrice)}`
-      : '-',
-
+    cheapestPrice ? `Rp ${fmt(cheapestPrice)}` : '-',
     p.note || '-'
   ];
 
   for (let i = 0; i < MAX_COMP; i++) {
-
     const c = p.competitors[i];
-
-    row.push(
-      c
-        ? `${c.store}
-    Rp ${c.price ? fmt(c.price) : '-'}`
-        : '-'
-    );
+    // ── UBAH: 3 kolom per kompetitor, tambah Terjual ──
+    row.push(c ? (c.store || '-') : '-');
+    row.push(c && c.price ? `Rp ${fmt(c.price)}` : '-');
+    row.push(c && c.sold  ? c.sold : '-');
   }
 
   return row;
 });
-
+  
   doc.setFontSize(16);
 
   doc.text(
