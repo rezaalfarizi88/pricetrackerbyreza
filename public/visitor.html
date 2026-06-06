@@ -1985,6 +1985,11 @@ const body = filteredProducts.map((p, idx) => {
   showToast('🖨 PDF berhasil didownload');
 }
 
+async function doLogout() {
+  await fetch('/api/logout', { method: 'POST' });
+  window.location.href = '/login.html';
+}
+
 </script>
 <footer class="footer">
   <span>© 2026 Multi Lintas Niaga</span>
