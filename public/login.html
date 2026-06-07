@@ -23,7 +23,11 @@
   --line-lt:   rgba(30,77,140,.08);
 }
 
-html,body{height:100%}
+html,body{
+  height: auto;
+  min-height: 100%;
+  overflow-y: auto;
+}
 
 body{
   min-height:100vh;
@@ -408,6 +412,8 @@ body::before{
 @media(max-width:900px){
   .layout{
     flex-direction: column;
+    overflow-y: auto; 
+    height: auto; 
   }
 
   .panel-left{
